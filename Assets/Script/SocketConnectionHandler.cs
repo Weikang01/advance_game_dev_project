@@ -62,6 +62,6 @@ public class SocketConnectionHandler : MonoBehaviour
 
     private void SendPlayerWorldMessage()
     {
-        gameSocket.SendMessage(new GameMessage.IngameMessage(player.transform.position.x, player.transform.position.y));
+        gameSocket.SendMessage(0, new GameMessage.IngameMessage(player.transform.position.x, player.transform.position.y));
     }
 }

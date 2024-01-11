@@ -88,12 +88,10 @@ public class GameSocket
             int headLengthIndex = index + 6;
             Array.Copy(bytes, index, head, 0, 4);
 
-            short otherClientID = BitConverter.ToInt16(head, 0);
+            short length = BitConverter.ToInt16(head, 2);
 
-            if (otherClientID > 0)
+            if (length > 0)
             {
-                short length = BitConverter.ToInt16(head, 2);
-                short messageType = BitConverter.ToInt16(head, 4);
 
                 byte[] data = new byte[length];
                 Array.Copy(bytes, headLengthIndex, data, 0, length);
