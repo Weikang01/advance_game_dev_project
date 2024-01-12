@@ -35,7 +35,7 @@ public class SocketConnectionHandler : MonoBehaviour
         {
             foreach (GameMessage.IngameMessage ingameMessage in entry.Value)
             {
-                Debug.Log("Action type: " + ingameMessage.actionType);
+                //Debug.Log("Action type: " + ingameMessage.actionType);
 
                 if (!otherPlayers.ContainsKey(entry.Key))
                 {

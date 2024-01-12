@@ -6,7 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     public bool isCurrentPlayer = false;
     private Rigidbody2D rb;
-    private BoxCollider2D coll;
+    private CapsuleCollider2D coll;
     private SpriteRenderer sprite;
     public SocketConnectionHandler socketConnectionHandler;
 
@@ -20,7 +20,7 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        coll = GetComponent<BoxCollider2D>();
+        coll = GetComponent<CapsuleCollider2D>();
         sprite = GetComponent<SpriteRenderer>();
 
         GameMessage.IngameMessage ingameMessage = new GameMessage.IngameMessage();
@@ -65,12 +65,15 @@ public class PlayerMovement : MonoBehaviour
 
     public void Move(float face_direction)
     {
+        dirX = face_direction;
+        //rb.AddForce(new Vector2(face_direction * moveSpeed, rb.velocity.y) * rb.mass);
         rb.velocity = new Vector2(face_direction * moveSpeed, rb.velocity.y);
     }
 
     public void Jump()
     {
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+        //rb.AddForce(new Vector2(rb.velocity.x, jumpForce) * rb.mass);
     }
 
     private void FixedUpdate()
@@ -87,6 +90,6 @@ public class PlayerMovement : MonoBehaviour
 
     private bool IsGrounded()
     {
-        return Physics2D.BoxCast(coll.bounds.center, coll.bounds.size, 0f, Vector2.down, .1f, jumpableGround);
+        return Physics2D.CapsuleCast(coll.bounds.center, coll.bounds.size, coll.direction, 0.0f, Vector2.down, .1f, jumpableGround);
     }
 }

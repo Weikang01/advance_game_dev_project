@@ -113,7 +113,7 @@ public class GameSocket
             byte[] head = StructToBytes(header);
             byte[] data = StructToBytes(body);
 
-            Debug.Log("Header size: " + head.Length + "\tBody size: " + data.Length);
+            //Debug.Log("Header size: " + head.Length + "\tBody size: " + data.Length);
 
             byte[] newByte = new byte[head.Length + data.Length];
             Array.Copy(head, 0, newByte, 0, head.Length);
