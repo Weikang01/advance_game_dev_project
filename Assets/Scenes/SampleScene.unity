@@ -1434,7 +1434,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 79851221}
-  otherPlayer: {fileID: 0}
 --- !u!4 &2097618023
 Transform:
   m_ObjectHideFlags: 0
@@ -1505,5 +1504,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2942720145405823869, guid: 853877347a7daf04ea899586e3e2a695, type: 3}
+      propertyPath: isCurrentPlayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2942720145405823869, guid: 853877347a7daf04ea899586e3e2a695, type: 3}
+      propertyPath: socketConnectionHandler
+      value: 
+      objectReference: {fileID: 2097618022}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 853877347a7daf04ea899586e3e2a695, type: 3}

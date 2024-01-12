@@ -33,26 +33,29 @@ class MessageHeader(ctypes.Structure):
 class IngameMessage(ctypes.Structure):
     _fields_ = [
         ("header", MessageHeader),
-        ("x", ctypes.c_float),
-        ("y", ctypes.c_float),
         ("action_type", ctypes.c_short),
         ("padding", ctypes.c_short),
+        ("x", ctypes.c_float),
+        ("y", ctypes.c_float),
+        ("face_direction", ctypes.c_float),
     ]
 
-    def __init__(self, header=MessageHeader(), x=0, y=0, action_type=0, *args):
+    def __init__(self, header=MessageHeader(), action_type=0, padding=0, x=0, y=0, face_direction=0, *args):
         super().__init__()
         self.header = header
+        self.action_type = action_type
+        self.padding = 0
         self.x = x
         self.y = y
-        self.action_type = action_type
+        self.face_direction = face_direction
 
     def get_bytes(self):
-        return self.header.get_bytes() + struct.pack("ffhh", self.x, self.y, self.action_type, 0)
+        return self.header.get_bytes() + struct.pack("hhfff", self.action_type, 0, self.x, self.y, self.face_direction)
 
     @classmethod
     def from_bytes(cls, data):
         header = MessageHeader.from_bytes(data[:MessageHeader.get_size()])
-        unpacked_data = struct.unpack("ffhh", data[MessageHeader.get_size():])
+        unpacked_data = struct.unpack("hhfff", data[MessageHeader.get_size():])
         return cls(header, *unpacked_data)
 
     @classmethod
@@ -92,6 +95,7 @@ def handle_world_message(client_socket):
                 break  # client disconnected
 
             t = recvmsg[:IngameMessage.get_size()]
+            # print("size: ", IngameMessage.get_size())
             message = IngameMessage.from_bytes(recvmsg[:IngameMessage.get_size()])
 
             # Send the data to the client with the length field

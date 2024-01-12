@@ -10,7 +10,6 @@ public class SocketConnectionHandler : MonoBehaviour
 {
     private short clientID;
     private GameSocket gameSocket;
-    private float mSynchronous = 0;
     
     public GameObject player;
     private Dictionary<short, GameObject> otherPlayers;
@@ -22,45 +21,47 @@ public class SocketConnectionHandler : MonoBehaviour
         clientID = (short)UnityEngine.Random.Range(0, Int16.MaxValue);
         gameSocket = GameSocket.GetInstance();
         otherPlayers = new Dictionary<short, GameObject>();
-
-        SendPlayerWorldMessage();
     }
 
     // Update is called once per frame
     void Update()
     {
-        SendPlayerWorldMessage();
         ReceiveOtherPlayerWorldMessage();
     }
 
     private void ReceiveOtherPlayerWorldMessage()
     {
-        mSynchronous += Time.deltaTime;
-
-        if (mSynchronous > 0.5f)
+        foreach (KeyValuePair<short, List<GameMessage.IngameMessage>> entry in gameSocket.messages)
         {
-            foreach (KeyValuePair<short, List<GameMessage.IngameMessage>> entry in gameSocket.messages)
+            foreach (GameMessage.IngameMessage ingameMessage in entry.Value)
             {
-                foreach (GameMessage.IngameMessage worldMessage in entry.Value)
+                Debug.Log("Action type: " + ingameMessage.actionType);
+
+                if (!otherPlayers.ContainsKey(entry.Key))
                 {
-                    if (!otherPlayers.ContainsKey(entry.Key))
+                    otherPlayers.Add(entry.Key, Instantiate(player, new Vector3(ingameMessage.playerPosX + 2, ingameMessage.playerPosY, 0), Quaternion.identity));
+                    otherPlayers[entry.Key].GetComponent<PlayerMovement>().isCurrentPlayer = false;
+                }
+                else
+                {
+                    switch (ingameMessage.actionType)
                     {
-                        otherPlayers.Add(entry.Key, Instantiate(player, new Vector3(worldMessage.playerPosX + 1, worldMessage.playerPosY + 1, 0), Quaternion.identity));
-                    }
-                    else
-                    {
-                        otherPlayers[entry.Key].transform.position = new Vector3(worldMessage.playerPosX + 1, worldMessage.playerPosY + 1, 0);
+                        case (short)GameMessage.ActionType.MOVE:
+                            Debug.Log("moving!");
+                            otherPlayers[entry.Key].GetComponent<PlayerMovement>().Move(ingameMessage.faceDirection);
+                            break;
+                        case (short)GameMessage.ActionType.JUMP:
+                            otherPlayers[entry.Key].GetComponent<PlayerMovement>().Jump();
+                            break;
                     }
                 }
-                entry.Value.Clear();
             }
-
-            mSynchronous = 0;
+            entry.Value.Clear();
         }
     }
 
-    private void SendPlayerWorldMessage()
+    public void SendPlayerWorldMessage(GameMessage.IngameMessage ingameMessage)
     {
-        gameSocket.SendMessage(clientID, new GameMessage.IngameMessage(player.transform.position.x, player.transform.position.y));
+        gameSocket.SendMessage(clientID, ingameMessage);
     }
 }

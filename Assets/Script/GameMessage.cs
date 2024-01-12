@@ -54,16 +54,19 @@ public class GameMessage
     [StructLayout(LayoutKind.Sequential, Pack =4)]
     public class IngameMessage
     {
+        public short actionType;
         // player in-game data
         public float playerPosX;
         public float playerPosY;
-        public short actionType;
+        public float faceDirection;
 
-        public IngameMessage(float playerPosX = 0.0f, float playerPosY = 0.0f, short actionType = 0)
+        public IngameMessage(short actionType = 0, float playerPosX = 0.0f, float playerPosY = 0.0f, float faceDirection = 0)
         {
+            this.actionType = actionType;
+            // player in-game data
             this.playerPosX = playerPosX;
             this.playerPosY = playerPosY;
-            this.actionType = actionType;
+            this.faceDirection = faceDirection;
         }
 
         internal static IngameMessage FromBytes(byte[] messageBytes)
