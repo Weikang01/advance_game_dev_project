@@ -11,7 +11,7 @@ using UnityEditor.PackageManager;
 public class GameSocket
 {
     private Socket socket;
-    public List<GameMessage.IngameMessage> messages;
+    public Dictionary<short, List<GameMessage.IngameMessage>> messages;
     private static GameSocket instance;
     public static GameSocket GetInstance()
     {
@@ -34,12 +34,11 @@ public class GameSocket
         bool success = result.AsyncWaitHandle.WaitOne(5000, true);
         if (success)
         {
-            messages = new List<GameMessage.IngameMessage>();
+            messages = new Dictionary<short, List<GameMessage.IngameMessage>>();
             Thread thread = new Thread(new ThreadStart(ReceiveSocket));
             thread.IsBackground = true;
             thread.Start();
         }
-
     }
 
     private void connectCallback(IAsyncResult result)
@@ -60,58 +59,47 @@ public class GameSocket
 
             try
             {
-                byte[] bytes = new byte[4096];
+                byte[] headerBytes = new byte[GameMessage.MessageHeader.GetSize()];
+                int bytesRead = socket.Receive(headerBytes, headerBytes.Length, SocketFlags.None);
 
-                int i = socket.Receive(bytes);
-                if (i <= 0)
+                if (bytesRead == 0)
                 {
+                    Debug.Log("Connection closed by server.");
                     socket.Close();
                     return;
                 }
 
-                if (bytes.Length > 4)
+                GameMessage.MessageHeader header = GameMessage.MessageHeader.FromBytes(headerBytes);
+
+                Debug.Log("Receive message header: " + header.clientID + " " + header.messageLength + " ");
+
+                if (header.messageLength > 0)
                 {
-                    SplitMessage(bytes, 0);
+                    byte[] messageBytes = new byte[header.messageLength];
+                    bytesRead = socket.Receive(messageBytes, messageBytes.Length, SocketFlags.None);
+
+                    if (bytesRead == 0)
+                    {
+                        Debug.Log("Connection closed by server.");
+                        socket.Close();
+                        return;
+                    }
+                    if (!messages.ContainsKey(header.clientID))
+                    {
+                        messages.Add(header.clientID, new List<GameMessage.IngameMessage>());
+                    }
+
+                    messages[header.clientID].Add(GameMessage.IngameMessage.FromBytes(messageBytes));
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Debug.Log(e);
             }
         }
     }
 
-    private void SplitMessage(byte[] bytes, int index)
-    {
-        while (true)
-        {
-            byte[] head = new byte[6];
-            int headLengthIndex = index + 6;
-            Array.Copy(bytes, index, head, 0, 4);
-
-            short length = BitConverter.ToInt16(head, 2);
-
-            if (length > 0)
-            {
-
-                byte[] data = new byte[length];
-                Array.Copy(bytes, headLengthIndex, data, 0, length);
-                GameMessage.IngameMessage wm = new GameMessage.IngameMessage();
-
-                wm = (GameMessage.IngameMessage)BytesToStruct(data, wm.GetType());
-
-                Debug.Log("Receive message: " + wm.playerPosX + " " + wm.playerPosY);
-
-                messages.Add(wm);
-
-                index = headLengthIndex + length;
-            } else
-            {
-                break;
-            }
-        }
-    }
-
-    public void SendMessage(short clientID, object obj)
+    public void SendMessage(short clientID, object body)
     {
         if (!socket.Connected)
         {
@@ -120,9 +108,12 @@ public class GameSocket
         }
         try
         {
-            short size = (short)Marshal.SizeOf(obj);
-            byte[] head = BitConverter.GetBytes(size);
-            byte[] data = StructToBytes(obj);
+            short size = (short)Marshal.SizeOf(body);
+            GameMessage.MessageHeader header = new GameMessage.MessageHeader(clientID, size);
+            byte[] head = StructToBytes(header);
+            byte[] data = StructToBytes(body);
+
+            Debug.Log("Header size: " + head.Length + "Body size: " + data.Length);
 
             byte[] newByte = new byte[head.Length + data.Length];
             Array.Copy(head, 0, newByte, 0, head.Length);
@@ -177,5 +168,4 @@ public class GameSocket
         }
         finally { Marshal.FreeHGlobal(buffer); }
     }
-
 }

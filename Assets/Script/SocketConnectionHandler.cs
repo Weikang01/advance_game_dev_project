@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -13,7 +14,6 @@ public class SocketConnectionHandler : MonoBehaviour
     
     public GameObject player;
     private Dictionary<short, GameObject> otherPlayers;
-    private GameObject otherPlayer;
 
 
     // Start is called before the first frame update
@@ -21,6 +21,9 @@ public class SocketConnectionHandler : MonoBehaviour
     {
         clientID = (short)UnityEngine.Random.Range(0, Int16.MaxValue);
         gameSocket = GameSocket.GetInstance();
+        otherPlayers = new Dictionary<short, GameObject>();
+
+        SendPlayerWorldMessage();
     }
 
     // Update is called once per frame
@@ -36,24 +39,20 @@ public class SocketConnectionHandler : MonoBehaviour
 
         if (mSynchronous > 0.5f)
         {
-            int count = gameSocket.messages.Count;
-
-            if (count > 0)
+            foreach (KeyValuePair<short, List<GameMessage.IngameMessage>> entry in gameSocket.messages)
             {
-                for (int i = 0; i < count; i++)
+                foreach (GameMessage.IngameMessage worldMessage in entry.Value)
                 {
-                    GameMessage.IngameMessage worldMessage = gameSocket.messages[i];
-                    if (otherPlayer == null)
+                    if (!otherPlayers.ContainsKey(entry.Key))
                     {
-                        otherPlayer = Instantiate(player, new Vector3(worldMessage.playerPosX + 1, worldMessage.playerPosY + 1, 0), Quaternion.identity);
+                        otherPlayers.Add(entry.Key, Instantiate(player, new Vector3(worldMessage.playerPosX + 1, worldMessage.playerPosY + 1, 0), Quaternion.identity));
                     }
                     else
                     {
-                        otherPlayer.transform.position = new Vector3(worldMessage.playerPosX + 1, worldMessage.playerPosY + 1, 0);
+                        otherPlayers[entry.Key].transform.position = new Vector3(worldMessage.playerPosX + 1, worldMessage.playerPosY + 1, 0);
                     }
                 }
-
-                gameSocket.messages.Clear();
+                entry.Value.Clear();
             }
 
             mSynchronous = 0;
@@ -62,6 +61,6 @@ public class SocketConnectionHandler : MonoBehaviour
 
     private void SendPlayerWorldMessage()
     {
-        gameSocket.SendMessage(0, new GameMessage.IngameMessage(player.transform.position.x, player.transform.position.y));
+        gameSocket.SendMessage(clientID, new GameMessage.IngameMessage(player.transform.position.x, player.transform.position.y));
     }
 }

@@ -1,16 +1,67 @@
 import socket
 import struct
+import ctypes
 import threading
 
 clients = []  # list of clients connected to the server
 
 
+class MessageHeader(ctypes.Structure):
+    _fields_ = [
+        ("clientID", ctypes.c_short),
+        ("messageLength", ctypes.c_short)
+    ]
+
+    def __init__(self, clientID=0, messageLength=0):
+        super().__init__()
+        self.clientID = clientID
+        self.messageLength = messageLength
+
+    def get_bytes(self):
+        return struct.pack("hh", self.clientID, self.messageLength)
+
+    @classmethod
+    def from_bytes(cls, data):
+        unpacked_data = struct.unpack("hh", data)
+        return cls(*unpacked_data)
+
+    @classmethod
+    def get_size(cls):
+        return ctypes.sizeof(cls)
+
+
+class IngameMessage(ctypes.Structure):
+    _fields_ = [
+        ("header", MessageHeader),
+        ("x", ctypes.c_float),
+        ("y", ctypes.c_float),
+        ("action_type", ctypes.c_short),
+        ("padding", ctypes.c_short),
+    ]
+
+    def __init__(self, header=MessageHeader(), x=0, y=0, action_type=0, *args):
+        super().__init__()
+        self.header = header
+        self.x = x
+        self.y = y
+        self.action_type = action_type
+
+    def get_bytes(self):
+        return self.header.get_bytes() + struct.pack("ffhh", self.x, self.y, self.action_type, 0)
+
+    @classmethod
+    def from_bytes(cls, data):
+        header = MessageHeader.from_bytes(data[:MessageHeader.get_size()])
+        unpacked_data = struct.unpack("ffhh", data[MessageHeader.get_size():])
+        return cls(header, *unpacked_data)
+
+    @classmethod
+    def get_size(cls):
+        return ctypes.sizeof(cls)
+
+
 def send_data_to_client(client_socket, data):
     # Calculate the length of the data and pack it into 2 bytes
-    data_length = len(data)
-    length_bytes = struct.pack('h', data_length)
-
-    data = length_bytes + data
     try:
         # Send the actual data
         client_socket.send(data)
@@ -20,16 +71,13 @@ def send_data_to_client(client_socket, data):
         clients.remove(client_socket)
 
 
-def broadcast_location(sender, x, y):
+def broadcast_message(sender, message):
     for client in clients:
         if True:
-        # if client != sender:
+            # if client != sender:
             try:
                 # Pack the location data
-                print("broadcasting location", x, y)
-                data = struct.pack('f', x) + struct.pack('f', y)
-                # Send the data to the client with the length field
-                send_data_to_client(client, data)
+                send_data_to_client(client, message.get_bytes())
             except Exception as e:
                 print("[broadcast_location] Error sending data to client:", str(e))
                 # Remove the client from the list of clients
@@ -42,16 +90,12 @@ def handle_world_message(client_socket):
             recvmsg = client_socket.recv(1024)
             if len(recvmsg) == 0:
                 break  # client disconnected
-            length = struct.unpack('h', recvmsg[:2])[0]
 
-            # extract the data
-            # x-axis coordinate of the client (float)
-            x = struct.unpack('f', recvmsg[2:6])[0]
-            # y-axis coordinate of the client (float)
-            y = struct.unpack('f', recvmsg[6:10])[0]
+            t = recvmsg[:IngameMessage.get_size()]
+            message = IngameMessage.from_bytes(recvmsg[:IngameMessage.get_size()])
 
             # Send the data to the client with the length field
-            broadcast_location(client_socket, x, y)
+            broadcast_message(client_socket, message)
         except Exception as e:
             print("Error:", str(e))
 
@@ -76,7 +120,6 @@ while True:
     print("Waiting for a client...")
     conn, address = socket_server.accept()
     print("Connected to", address)
-
 
     clients.append(conn)
     # start a new thread to handle the client

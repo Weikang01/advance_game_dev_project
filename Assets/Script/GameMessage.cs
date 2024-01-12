@@ -1,38 +1,54 @@
+using System;
 using System.Runtime.InteropServices;
 
 public class GameMessage
 {
-    public enum MessageTypes
-    {
-        TypeConnectionMessage = (short)0,
-        TypeIngameMessage = (short)1,
-    }
-
     public interface IMessage
     {
         short GetMessageType();
     }
 
     [System.Serializable]
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public class ConnectionMessage
+    [StructLayout(LayoutKind.Sequential, Pack = 2)]
+    public struct MessageHeader
     {
-        // player connection data
         public short clientID;
-        public float playerPosX;
-        public float playerPosY;
-        public ConnectionMessage(short clientID = 0, float playerPosX = 0.0f, float playerPosY = 0.0f)
+        public short messageLength;
+        public MessageHeader(short clientID = 0, short messageLength = 0)
         {
             this.clientID = clientID;
-            this.playerPosX = playerPosX;
-            this.playerPosY = playerPosY;
+            this.messageLength = messageLength;
         }
-        public short GetMessageType()
+
+        // get byte size of struct
+        public static int GetSize()
         {
-            return (short)MessageTypes.TypeConnectionMessage;
+            return Marshal.SizeOf(typeof(MessageHeader));
+        }
+
+        public static MessageHeader FromBytes(byte[] bytes)
+        {
+            MessageHeader header = new MessageHeader();
+            GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            header = (MessageHeader)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(MessageHeader));
+            handle.Free();
+            return header;
         }
     }
 
+    // enum class for action type
+    public enum ActionType
+    {
+        MOVE = 0,
+        JUMP = 1,
+        ATTACK = 2,
+        SKILL = 3,
+        DIE = 4,
+        RESPAWN = 5,
+        GAMEOVER = 6,
+        QUIT = 7,
+        ENTER = 8,
+    }
 
     [System.Serializable]
     [StructLayout(LayoutKind.Sequential, Pack =4)]
@@ -41,16 +57,22 @@ public class GameMessage
         // player in-game data
         public float playerPosX;
         public float playerPosY;
+        public short actionType;
 
-        public IngameMessage(float playerPosX = 0.0f, float playerPosY = 0.0f)
+        public IngameMessage(float playerPosX = 0.0f, float playerPosY = 0.0f, short actionType = 0)
         {
             this.playerPosX = playerPosX;
             this.playerPosY = playerPosY;
+            this.actionType = actionType;
         }
 
-        public short GetMessageType()
+        internal static IngameMessage FromBytes(byte[] messageBytes)
         {
-            return (short)MessageTypes.TypeIngameMessage;
+            IngameMessage message = new IngameMessage();
+            GCHandle handle = GCHandle.Alloc(messageBytes, GCHandleType.Pinned);
+            message = (IngameMessage)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(IngameMessage));
+            handle.Free();
+            return message;
         }
     }
 }
