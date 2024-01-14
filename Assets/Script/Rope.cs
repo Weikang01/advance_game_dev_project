@@ -1,258 +1,122 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
 
+[RequireComponent(typeof(LineRenderer))]
 public class Rope : MonoBehaviour
 {
     public GameObject endA;
     public GameObject endB;
 
-    private Rigidbody2D rigidbodyEndA;
-    private Rigidbody2D rigidbodyEndB;
-
-    public int segments = 8;
-    public float elasticity = 0.2f;                  //  The higher the value, the more elastic the rope will be
+    [Header("Rope physics")]
+    public int nr_segments = 8;
+    public float width = 0.1F;                      //  The width of the rope segments
     public float ropeMass = 1.0F;                    //  The mass of each rope segment
-    public float stiffness = 4.0F;                  //  The higher the value, the less stretchy the rope will be
-    [Range(0,1)]public float damping = 0.4F;         //  The higher the value, the less it will flap around
+    public float damping = 0.1F;                     //  The damping of each rope segment
 
-    [SerializeField]
-    private Vector3[] segmentPos;                    //  DONT MESS!  This is for the Line Renderer's Reference and to set up the positions of the gameObjects
-    [SerializeField]
-    private Vector3[] segmentVelocity;             //  DONT MESS!  This is the velocity of each segment, used to make the rope swing
-    [SerializeField] 
-    private Vector3[] segmentForce;               //  DONT MESS!  This is the force of each segment, used to make the rope swing
 
     private LineRenderer line;                       //  Reference to the line renderer component
-    private float segmentRestingLength;
-    private float segmentMaxLength;
-    private float segmentMinLength;
+    private List<GameObject> segments_objects = new List<GameObject>();
+    private Vector3[] segmentPos;
 
-    private Vector2 oldVelocityEndA;
-    private Vector2 oldVelocityEndB;
-
-    // Start is called before the first frame update
     void Start()
     {
         line = GetComponent<LineRenderer>();
 
-        rigidbodyEndA = endA.GetComponent<Rigidbody2D>();
-        rigidbodyEndB = endB.GetComponent<Rigidbody2D>();
-
-        segmentPos = new Vector3[segments + 1];
-        segmentVelocity = new Vector3[segments + 1];
-        segmentForce = new Vector3[segments + 1];
-
-        segmentRestingLength = (endA.transform.position - endB.transform.position).magnitude / segments;
-        segmentMaxLength = segmentRestingLength  + segmentRestingLength * elasticity;
-        segmentMinLength = segmentRestingLength - segmentRestingLength * elasticity;
-
-        oldVelocityEndA = rigidbodyEndA.velocity;
-        oldVelocityEndB = rigidbodyEndB.velocity;
-
-
-        // apply physics to the rope
         Initialize();
-
-        // draw the rope
         DrawRope();
     }
 
     private void Initialize()
     {
+        Rigidbody2D endA_rb = endA.GetComponent<Rigidbody2D>();
+        Rigidbody2D endB_rb = endB.GetComponent<Rigidbody2D>();
+
+        SpringJoint2D endA_sj, endB_sj;
+        if (!endA.GetComponent<SpringJoint2D>())
+            endA_sj = endA.AddComponent<SpringJoint2D>();
+        else endA_sj = endA.GetComponent<SpringJoint2D>();
+        if (!endB.GetComponent<SpringJoint2D>())
+            endB_sj = endB.AddComponent<SpringJoint2D>();
+        else endB_sj = endB.GetComponent<SpringJoint2D>();
+
+        segmentPos = new Vector3[nr_segments + 1];
+        segmentPos[0] = endA.transform.position;
+        segmentPos[nr_segments] = endB.transform.position;
+
         //  Find the distance between each segment
-        float segLenX = (endB.transform.transform.position.x - endA.transform.position.x) / segments;
-        float segLenY = (endB.transform.transform.position.y - endA.transform.position.y) / segments;
-        for (int i = 0; i < segments + 1; i++)
+        float segLenX = (endB.transform.transform.position.x - endA.transform.position.x) / nr_segments;
+        float segLenY = (endB.transform.transform.position.y - endA.transform.position.y) / nr_segments;
+        
+        SpringJoint2D last_succ_sj = null;
+        Rigidbody2D last_rb = null;
+        float posX, posY;
+        for (int i = 1; i < nr_segments; i++)
         {
             //  Find the each segments position using the slope from above
-            float posX = endA.transform.position.x + (segLenX * i);
-            float posY = endA.transform.position.y + (segLenY * i);
+            posX = endA.transform.position.x + (segLenX * i);
+            posY = endA.transform.position.y + (segLenY * i);
+
             //  Set each segments position
             segmentPos[i] = new Vector2(posX, posY);
-        }
-    }
 
-    private Vector3 CalculateSpringForce(Vector3 diff)
-    {
-        return (diff.magnitude - segmentRestingLength) * (diff.magnitude - segmentRestingLength) * stiffness * diff.normalized;
-    }
+            segments_objects.Add(new GameObject("segment" + i.ToString()));
+            segments_objects[i - 1].transform.parent = transform;
+            segments_objects[i - 1].layer = LayerMask.NameToLayer("OnlyInteractWithGround");
 
-    private void ApplyPhysics()
-    {
-        segmentPos[0] = endA.transform.position;
-        segmentPos[segmentPos.Length - 1] = endB.transform.position;
+            segments_objects[i - 1].transform.position = (segmentPos[i] + segmentPos[i - 1]) * 0.5f;
+            segments_objects[i - 1].transform.rotation = Quaternion.LookRotation((segmentPos[i] - segmentPos[i - 1]).normalized);
 
-        for (int i = 0; i < segments + 1; i++)
-        {
-            if (i == 0)
+            Rigidbody2D cur_rb = segments_objects[i - 1].AddComponent<Rigidbody2D>();
+            cur_rb.mass = ropeMass;
+            SpringJoint2D cur_prev_sj = segments_objects[i - 1].AddComponent<SpringJoint2D>();
+            SpringJoint2D cur_succ_sj = segments_objects[i - 1].AddComponent<SpringJoint2D>();
+
+            cur_prev_sj.dampingRatio = damping;
+            cur_succ_sj.dampingRatio = damping;
+
+            CircleCollider2D cur_cc = segments_objects[i - 1].AddComponent<CircleCollider2D>();
+            cur_cc.radius = width;
+
+            if (i == 1)
             {
-                Vector3 diff = segmentPos[i + 1] - segmentPos[i];
-
-                segmentForce[i] = CalculateSpringForce(diff);
-                rigidbodyEndA.AddForce(segmentForce[i], ForceMode2D.Impulse);
+                endA_sj.connectedBody = cur_rb;
+                cur_prev_sj.connectedBody = endA_rb;
+            }
+            else if (i == nr_segments - 1)
+            {
+                endB_sj.connectedBody = cur_rb;
+                cur_prev_sj.connectedBody = last_rb;
+                cur_succ_sj.connectedBody = endB_rb;
+                last_succ_sj.connectedBody = cur_rb;
             }
             else
             {
-                Vector3 diff;
-                if (i == segments)
-                {
-                    diff = segmentPos[i - 1] - segmentPos[i];
-                    segmentForce[i] = CalculateSpringForce(diff);
-                    rigidbodyEndB.AddForce(segmentForce[i], ForceMode2D.Impulse);
-                }
-                else  // i != 0 && i != segments
-                {
-                    segmentForce[i] = Physics2D.gravity * ropeMass;
-
-                    // apply Hooks law
-                    diff = segmentPos[i - 1] - segmentPos[i];
-                    Vector3 springForce = CalculateSpringForce(diff);
-
-                    diff = segmentPos[i + 1] - segmentPos[i];
-                    springForce += CalculateSpringForce(diff);
-
-                    segmentForce[i] += springForce;
-
-                    segmentVelocity[i] += Time.deltaTime * (segmentForce[i] / ropeMass - damping * segmentVelocity[i]);
-
-                    // calculate damping
-                    segmentPos[i] += segmentVelocity[i] * Time.deltaTime;
-
-                    // TODO: check for collision
-                    RaycastHit2D hitPrev = Physics2D.Raycast(segmentPos[i - 1], (segmentPos[i] - segmentPos[i - 1]).normalized, (segmentPos[i] - segmentPos[i - 1]).magnitude);
-                    RaycastHit2D hitAft = Physics2D.Raycast(segmentPos[i + 1], (segmentPos[i] - segmentPos[i + 1]).normalized, (segmentPos[i] - segmentPos[i + 1]).magnitude);
-
-                    if (hitPrev.collider != null && hitPrev.collider.CompareTag("Ground") &&
-                        hitAft.collider != null && hitAft.collider.CompareTag("Ground"))
-                    {
-                        // draw x and y coordinates of the normal
-                        Debug.DrawLine(hitPrev.point, hitPrev.point + new Vector2(hitPrev.normal.x, 0), Color.red);
-                        Debug.DrawLine(hitPrev.point, hitPrev.point + new Vector2(0, hitPrev.normal.y), Color.red);
-                        // draw the hit line
-                        Debug.DrawLine(segmentPos[i - 1], segmentPos[i], Color.red);
-
-                        Vector2 normal = hitPrev.normal.normalized;
-
-                        // Calculate the reflection direction
-                        Vector2 reflection = Vector2.Reflect(segmentVelocity[i], normal);
-
-                        // Apply the reflection direction as the new velocity
-                        segmentVelocity[i] = reflection;
-
-                        // Adjust the position to avoid penetration
-                        segmentPos[i] = hitPrev.point + (normal * 0.01f); // Adjust by a small offset to avoid continuous collision
-                    }
-                }
-
-                diff = segmentPos[i - 1] - segmentPos[i];
-                
-
-                float distanceError = diff.magnitude > segmentMaxLength ? diff.magnitude - segmentMaxLength : 0;
-
-                if (distanceError > 0.0f)
-                {
-                    segmentPos[i] = segmentPos[i - 1] - diff.normalized * segmentMaxLength;
-                }
-
-                if (i == segments)
-                {
-                    segmentPos[i] = endB.transform.position;
-
-                    for (int j = segments; j >= 1; j--)
-                    {
-                        diff = segmentPos[j - 1] - segmentPos[j];
-
-                        distanceError = diff.magnitude > segmentMaxLength ? diff.magnitude - segmentMaxLength : 0;
-
-                        if (distanceError > 0.0f)
-                        {
-                            segmentPos[j - 1] = segmentPos[j] + diff.normalized * segmentMaxLength;
-                        }
-
-                    }
-                }
+                cur_prev_sj.connectedBody = last_rb;
+                last_succ_sj.connectedBody = cur_rb;
             }
 
+            last_rb = cur_rb;
+            last_succ_sj = cur_succ_sj;
         }
-    }
-
-    private void ApplyPhysics2()
-    {
-        // static forces
-        Vector3 prevDiff, succDiff;
-        for (int i = 0, stride = segments, dir = 1; stride >= 0; i += dir * stride, stride--, dir *= -1)
-        {
-            if (i == 0)
-            {
-                //prevDiff = new Vector3(endA.transform.position.x, endA.transform.position.y) - segmentPos[i];
-                //succDiff = segmentPos[i + 1] - segmentPos[i];
-                // add constrains
-                segmentPos[0] = endA.transform.position;
-                succDiff = segmentPos[i + dir] - segmentPos[i];
-                   
-                if (succDiff.magnitude > segmentMaxLength)
-                {
-                    //segmentPos[i + dir] = segmentPos[i] + succDiff.normalized * segmentMaxLength;
-                }
-            }
-            else if (i == segments)
-            {
-                //prevDiff = segmentPos[i - 1] - segmentPos[i];
-                //succDiff = new Vector3(endB.transform.position.x, endB.transform.position.y) - segmentPos[i];
-                // add constrains
-                segmentPos[segments] = endB.transform.position;
-                succDiff = segmentPos[i + dir] - segmentPos[i];
-
-                if (succDiff.magnitude > segmentMaxLength)
-                {
-                    //segmentPos[i + dir] = segmentPos[i] + succDiff.normalized * segmentMaxLength;
-                }
-            }
-            else
-            {
-                prevDiff = segmentPos[i - 1] - segmentPos[i];
-                succDiff = segmentPos[i + 1] - segmentPos[i];
-
-                segmentForce[i] = Physics2D.gravity;
-                segmentForce[i] += CalculateSpringForce(prevDiff);
-                segmentForce[i] += CalculateSpringForce(succDiff);
-
-                segmentVelocity[i] += Time.deltaTime * (segmentForce[i] / ropeMass - damping * segmentVelocity[i]);
-                segmentPos[i] += segmentVelocity[i] * Time.deltaTime;
-
-                // add constrains
-                //succDiff = segmentPos[i + dir] - segmentPos[i];
-                //if (succDiff.magnitude > segmentMaxLength)
-                //{
-                //    segmentPos[i + dir] = segmentPos[i] + succDiff.normalized * segmentMaxLength;
-                //}
-
-                if (stride == 0)
-                {
-                    for (int j = i, inner_stride=1, inner_dir = -dir; inner_stride <= segments - 2 ;j+=inner_stride * inner_dir, inner_stride++, inner_dir = -inner_dir)
-                    {
-                        succDiff = segmentPos[j + inner_dir] - segmentPos[j];
-                        prevDiff = segmentPos[j - inner_dir] - segmentPos[j];
-                        if (succDiff.magnitude > segmentMaxLength)
-                        {
-                            segmentPos[j + inner_dir] = segmentPos[j] + succDiff.normalized * segmentMaxLength;
-                        }
-                    }
-                }
-            }
-        }
-
-
-
-
     }
 
     private void DrawRope()
     {
-        line.positionCount = segmentPos.Length;
+        segmentPos[0] = endA.transform.position;
+        segmentPos[nr_segments] = endB.transform.position;
 
+        for (int i = 1; i < nr_segments; i++)
+        {
+            segmentPos[i] = segments_objects[i - 1].transform.position;
+
+        }
+
+        line.positionCount = nr_segments + 1;
+        line.startWidth = width; line.endWidth = width;
         line.SetPositions(segmentPos);
     }
 
@@ -260,11 +124,6 @@ public class Rope : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // apply physics to the rope
-        ApplyPhysics();
-        //ApplyPhysics2();
-
-        // draw the rope
         DrawRope();
     }
 }
