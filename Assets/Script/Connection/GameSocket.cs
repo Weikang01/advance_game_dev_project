@@ -28,8 +28,10 @@ public class GameSocket
         // server ip address
         IPAddress iPAddress = IPAddress.Parse("127.0.0.1");
         // server ip endpoint
-        IPEndPoint iPEndPoint = new IPEndPoint(iPAddress, 5009);
-        IAsyncResult result = socket.BeginConnect(iPEndPoint, new AsyncCallback(connectCallback), socket);
+        IPEndPoint clientEndPoint = new IPEndPoint(iPAddress, 5009);
+
+
+        IAsyncResult result = socket.BeginConnect(clientEndPoint, new AsyncCallback(connectCallback), socket);
 
         bool success = result.AsyncWaitHandle.WaitOne(5000, true);
         if (success)
@@ -132,6 +134,40 @@ public class GameSocket
         } catch (Exception e)
         {
             Debug.Log("send message error: " + e);
+        }
+    }
+
+    public void SendScreenShot(short clientID, short width, short height, byte[] data)
+    {
+        if (!socket.Connected)
+        {
+            socket.Close();
+            return;
+        }
+        try
+        {
+            GameMessage.MessageHeader header = new GameMessage.MessageHeader(clientID, (short)data.Length, (short)GameMessage.MessageType.SCREENSHOT);
+            GameMessage.ScreenShotHeaderMessage screenShotHeaderMessage = new GameMessage.ScreenShotHeaderMessage(width, height);
+            byte[] head = StructToBytes(header);
+            byte[] screenshotheader = StructToBytes(screenShotHeaderMessage);
+            byte[] newByte = new byte[head.Length + screenshotheader.Length + data.Length];
+            Array.Copy(head, 0, newByte, 0, head.Length);
+            Array.Copy(screenshotheader, 0, newByte, head.Length, screenshotheader.Length);
+            Array.Copy(data, 0, newByte, head.Length + screenshotheader.Length, data.Length);
+
+            IAsyncResult asyncResult = socket.BeginSend(newByte, 0, newByte.Length, SocketFlags.None, new AsyncCallback(sendCallback), socket);
+
+            bool success = asyncResult.AsyncWaitHandle.WaitOne(5000, true);
+
+            if (!success)
+            {
+                socket.Close();
+                Debug.Log("Time out!");
+            }
+        }
+         catch (Exception e)
+        {
+            Debug.Log("send screenshot message error: " + e);
         }
     }
 

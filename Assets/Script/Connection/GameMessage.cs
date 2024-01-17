@@ -3,6 +3,13 @@ using System.Runtime.InteropServices;
 
 public class GameMessage
 {
+    // enum class for action type
+    public enum MessageType
+    {
+        MESSAGE = 0,
+        SCREENSHOT = 1,
+    }
+
     public interface IMessage
     {
         short GetMessageType();
@@ -14,10 +21,12 @@ public class GameMessage
     {
         public short clientID;
         public short messageLength;
-        public MessageHeader(short clientID = 0, short messageLength = 0)
+        public short messageType;
+        public MessageHeader(short clientID = 0, short messageLength = 0, short messageType = 0)
         {
             this.clientID = clientID;
             this.messageLength = messageLength;
+            this.messageType = messageType;
         }
 
         // get byte size of struct
@@ -78,4 +87,33 @@ public class GameMessage
             return message;
         }
     }
+
+    [System.Serializable]
+    [StructLayout(LayoutKind.Sequential, Pack = 2)]
+    public class ScreenShotHeaderMessage
+    {
+        public short width;
+        public short height;
+
+        public ScreenShotHeaderMessage(short width = 0, short height = 0)
+        {
+            this.width = width;
+            this.height = height;
+        }
+
+        internal static ScreenShotHeaderMessage FromBytes(byte[] messageBytes)
+        {
+            ScreenShotHeaderMessage message = new ScreenShotHeaderMessage();
+            GCHandle handle = GCHandle.Alloc(messageBytes, GCHandleType.Pinned);
+            message = (ScreenShotHeaderMessage)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(ScreenShotHeaderMessage));
+            handle.Free();
+            return message;
+        }
+
+        public static int GetSize()
+        {
+            return Marshal.SizeOf(typeof(ScreenShotHeaderMessage));
+        }
+    }
+
 }

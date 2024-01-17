@@ -27,7 +27,8 @@ public class PlayerMovement : MonoBehaviour
         ingameMessage.playerPosX = transform.position.x;
         ingameMessage.playerPosY = transform.position.y;
         ingameMessage.actionType = (short)GameMessage.ActionType.ENTER;
-        socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
+        if (isCurrentPlayer)
+            socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
     }
 
     // Update is called once per frame

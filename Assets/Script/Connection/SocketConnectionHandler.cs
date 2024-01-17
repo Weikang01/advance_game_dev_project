@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-
-
 public class SocketConnectionHandler : MonoBehaviour
 {
     private short clientID;
