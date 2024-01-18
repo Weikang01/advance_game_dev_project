@@ -2409,7 +2409,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 564c1870a713add4584b4745615f9346, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 79851221}
+  player: {fileID: 2942720145405823859, guid: 853877347a7daf04ea899586e3e2a695, type: 3}
 --- !u!4 &2097618023
 Transform:
   m_ObjectHideFlags: 0
@@ -2437,8 +2437,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2742b51cc6f379429c2cd82a3da3399, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 256
-  height: 256
+  width: 128
+  height: 128
   continuous: 1
   testImage: {fileID: 1749936275}
 --- !u!1 &2131984144
@@ -2639,7 +2639,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2942720145405823869, guid: 853877347a7daf04ea899586e3e2a695, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2942720145405823869, guid: 853877347a7daf04ea899586e3e2a695, type: 3}
       propertyPath: socketConnectionHandler

@@ -11,7 +11,7 @@ using UnityEditor.PackageManager;
 public class GameSocket
 {
     private Socket socket;
-    public Dictionary<short, List<GameMessage.IngameMessage>> messages;
+    public Dictionary<short, List<GameMessage.clientMessage>> client_messages;
     private static GameSocket instance;
     public static GameSocket GetInstance()
     {
@@ -36,7 +36,7 @@ public class GameSocket
         bool success = result.AsyncWaitHandle.WaitOne(5000, true);
         if (success)
         {
-            messages = new Dictionary<short, List<GameMessage.IngameMessage>>();
+            client_messages = new Dictionary<short, List<GameMessage.clientMessage>>();
             Thread thread = new Thread(new ThreadStart(ReceiveSocket));
             thread.IsBackground = true;
             thread.Start();
@@ -78,7 +78,7 @@ public class GameSocket
                 if (header.messageLength > 0)
                 {
                     byte[] messageBytes = new byte[header.messageLength];
-                    bytesRead = socket.Receive(messageBytes, messageBytes.Length, SocketFlags.None);
+                    bytesRead = socket.Receive(messageBytes, header.messageLength, SocketFlags.None);
 
                     if (bytesRead == 0)
                     {
@@ -86,12 +86,22 @@ public class GameSocket
                         socket.Close();
                         return;
                     }
-                    if (!messages.ContainsKey(header.clientID))
-                    {
-                        messages.Add(header.clientID, new List<GameMessage.IngameMessage>());
-                    }
 
-                    messages[header.clientID].Add(GameMessage.IngameMessage.FromBytes(messageBytes));
+                    if (header.messageType == (short)GameMessage.MessageType.CLIENT_MESSAGE)
+                    {
+                        if (!client_messages.ContainsKey(header.clientID))
+                        {
+                            client_messages.Add(header.clientID, new List<GameMessage.clientMessage>());
+                        }
+
+                        client_messages[header.clientID].Add(GameMessage.clientMessage.FromBytes(messageBytes));
+                    }
+                    else if (header.messageType == (short)GameMessage.MessageType.SYSTEM_MESSAGE)
+                    {
+                        // converse message bytes to JSON
+                        string message = System.Text.Encoding.UTF8.GetString(messageBytes);
+                        Debug.Log("Receive system message: " + message);
+                    }
                 }
             }
             catch (Exception e)

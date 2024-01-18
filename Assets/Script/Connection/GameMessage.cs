@@ -6,8 +6,9 @@ public class GameMessage
     // enum class for action type
     public enum MessageType
     {
-        MESSAGE = 0,
+        CLIENT_MESSAGE = 0,
         SCREENSHOT = 1,
+        SYSTEM_MESSAGE = 2,
     }
 
     public interface IMessage
@@ -48,7 +49,7 @@ public class GameMessage
     // enum class for action type
     public enum ActionType
     {
-        MOVE = 0,
+        MOVE = 9,
         JUMP = 1,
         ATTACK = 2,
         SKILL = 3,
@@ -61,7 +62,7 @@ public class GameMessage
 
     [System.Serializable]
     [StructLayout(LayoutKind.Sequential, Pack =4)]
-    public class IngameMessage
+    public class clientMessage
     {
         public short actionType;
         // player in-game data
@@ -69,7 +70,7 @@ public class GameMessage
         public float playerPosY;
         public float faceDirection;
 
-        public IngameMessage(short actionType = 0, float playerPosX = 0.0f, float playerPosY = 0.0f, float faceDirection = 0)
+        public clientMessage(short actionType = 0, float playerPosX = 0.0f, float playerPosY = 0.0f, float faceDirection = 0)
         {
             this.actionType = actionType;
             // player in-game data
@@ -78,11 +79,11 @@ public class GameMessage
             this.faceDirection = faceDirection;
         }
 
-        internal static IngameMessage FromBytes(byte[] messageBytes)
+        internal static clientMessage FromBytes(byte[] messageBytes)
         {
-            IngameMessage message = new IngameMessage();
+            clientMessage message = new clientMessage();
             GCHandle handle = GCHandle.Alloc(messageBytes, GCHandleType.Pinned);
-            message = (IngameMessage)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(IngameMessage));
+            message = (clientMessage)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(clientMessage));
             handle.Free();
             return message;
         }
@@ -115,5 +116,4 @@ public class GameMessage
             return Marshal.SizeOf(typeof(ScreenShotHeaderMessage));
         }
     }
-
 }
