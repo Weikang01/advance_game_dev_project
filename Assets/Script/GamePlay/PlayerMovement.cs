@@ -23,7 +23,7 @@ public class PlayerMovement : MonoBehaviour
         coll = GetComponent<CapsuleCollider2D>();
         sprite = GetComponent<SpriteRenderer>();
 
-        GameMessage.IngameMessage ingameMessage = new GameMessage.IngameMessage();
+        GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
         ingameMessage.playerPosX = transform.position.x;
         ingameMessage.playerPosY = transform.position.y;
         ingameMessage.actionType = (short)GameMessage.ActionType.ENTER;
@@ -42,7 +42,8 @@ public class PlayerMovement : MonoBehaviour
             {
                 Move(dirX);
 
-                GameMessage.IngameMessage ingameMessage = new GameMessage.IngameMessage();
+                GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
+
                 ingameMessage.playerPosX = transform.position.x;
                 ingameMessage.playerPosY = transform.position.y;
                 ingameMessage.faceDirection = dirX;
@@ -54,8 +55,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 Jump();
 
-                Debug.Log("Jump!");
-                GameMessage.IngameMessage ingameMessage = new GameMessage.IngameMessage();
+                GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
                 ingameMessage.playerPosX = transform.position.x;
                 ingameMessage.playerPosY = transform.position.y;
                 ingameMessage.actionType = (short)GameMessage.ActionType.JUMP;

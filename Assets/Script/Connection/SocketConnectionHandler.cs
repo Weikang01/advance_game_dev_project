@@ -6,17 +6,15 @@ using UnityEngine;
 
 public class SocketConnectionHandler : MonoBehaviour
 {
-    private short clientID;
     private GameSocket gameSocket;
-    
+    private ClientData clientData;
     public GameObject player;
     private Dictionary<short, GameObject> otherPlayers;
-
 
     // Start is called before the first frame update
     void Start()
     {
-        clientID = (short)UnityEngine.Random.Range(0, Int16.MaxValue);
+        clientData = ClientData.GetInstance();
         gameSocket = GameSocket.GetInstance();
         otherPlayers = new Dictionary<short, GameObject>();
     }
@@ -29,11 +27,11 @@ public class SocketConnectionHandler : MonoBehaviour
 
     private void ReceiveOtherPlayerWorldMessage()
     {
-        foreach (KeyValuePair<short, List<GameMessage.IngameMessage>> entry in gameSocket.messages)
+        foreach (KeyValuePair<short, List<GameMessage.clientMessage>> entry in gameSocket.client_messages)
         {
-            foreach (GameMessage.IngameMessage ingameMessage in entry.Value)
+            foreach (GameMessage.clientMessage ingameMessage in entry.Value)
             {
-                //Debug.Log("Action type: " + ingameMessage.actionType);
+                Debug.Log("Action type: " + ingameMessage.actionType);
 
                 if (!otherPlayers.ContainsKey(entry.Key))
                 {
@@ -45,7 +43,6 @@ public class SocketConnectionHandler : MonoBehaviour
                     switch (ingameMessage.actionType)
                     {
                         case (short)GameMessage.ActionType.MOVE:
-                            Debug.Log("moving!");
                             otherPlayers[entry.Key].GetComponent<PlayerMovement>().Move(ingameMessage.faceDirection);
                             break;
                         case (short)GameMessage.ActionType.JUMP:
@@ -58,8 +55,8 @@ public class SocketConnectionHandler : MonoBehaviour
         }
     }
 
-    public void SendPlayerWorldMessage(GameMessage.IngameMessage ingameMessage)
+    public void SendPlayerWorldMessage(GameMessage.clientMessage ingameMessage)
     {
-        gameSocket.SendMessage(clientID, ingameMessage);
+        gameSocket.SendMessage(clientData.clientID, ingameMessage);
     }
 }

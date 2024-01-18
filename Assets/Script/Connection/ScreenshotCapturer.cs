@@ -9,6 +9,7 @@ public class ScreenshotCapturer : MonoBehaviour
     public short height = 256;
     public bool continuous = true;
 
+    private ClientData clientData;
     private GameSocket gameSocket;
     private bool capturing = false;
 
@@ -17,6 +18,7 @@ public class ScreenshotCapturer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        clientData = ClientData.GetInstance();
         gameSocket = GameSocket.GetInstance();
     }
 
@@ -64,8 +66,8 @@ public class ScreenshotCapturer : MonoBehaviour
         }
         byte[] ss = screenshot.EncodeToPNG();
 
-        gameSocket.SendScreenShot(0, width, height, ss);
-        Debug.Log("ss.Length: " + ss.Length);
+        gameSocket.SendScreenShot(clientData.clientID, width, height, ss);
+        //Debug.Log("ss.Length: " + ss.Length);
 
         capturing = false;
     }
