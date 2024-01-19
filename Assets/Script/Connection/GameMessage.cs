@@ -81,9 +81,8 @@ public class GameMessage
 
         internal static clientMessage FromBytes(byte[] messageBytes)
         {
-            clientMessage message = new clientMessage();
             GCHandle handle = GCHandle.Alloc(messageBytes, GCHandleType.Pinned);
-            message = (clientMessage)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(clientMessage));
+            clientMessage message = (clientMessage)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(clientMessage));
             handle.Free();
             return message;
         }
@@ -104,9 +103,8 @@ public class GameMessage
 
         internal static ScreenShotHeaderMessage FromBytes(byte[] messageBytes)
         {
-            ScreenShotHeaderMessage message = new ScreenShotHeaderMessage();
             GCHandle handle = GCHandle.Alloc(messageBytes, GCHandleType.Pinned);
-            message = (ScreenShotHeaderMessage)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(ScreenShotHeaderMessage));
+            ScreenShotHeaderMessage message = (ScreenShotHeaderMessage)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(ScreenShotHeaderMessage));
             handle.Free();
             return message;
         }

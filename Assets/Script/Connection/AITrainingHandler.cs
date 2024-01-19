@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ScreenshotCapturer : MonoBehaviour
+public class AITrainingHandler : MonoBehaviour
 {
     public short width = 256;
     public short height = 256;
     public bool continuous = true;
 
-    private ClientData clientData;
+    private gameData clientData;
     private GameSocket gameSocket;
     private bool capturing = false;
 
@@ -18,7 +18,7 @@ public class ScreenshotCapturer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        clientData = ClientData.GetInstance();
+        clientData = gameData.GetInstance();
         gameSocket = GameSocket.GetInstance();
     }
 
