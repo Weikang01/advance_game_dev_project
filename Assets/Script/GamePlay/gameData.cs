@@ -37,4 +37,9 @@ public class gameData
     {
         players.Remove(clientID);
     }
+
+    public GameObject GetPlayer(short clientID)
+    {
+        return players[clientID];
+    }
 }

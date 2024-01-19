@@ -1,12 +1,17 @@
+import socket
+import threading
+import logging
+
 from messages import MessageHeader, MessageType, ServerMessage, ClientMessage
 from clients import Clients
-import socket
-
-import threading
 
 dqn = None
 
 clients = Clients()
+
+# initialize logging
+logging.getLogger().addHandler(logging.StreamHandler())
+logging.getLogger().setLevel(logging.INFO)
 
 
 def remove_client(client: int or socket):
@@ -30,9 +35,9 @@ def remove_client(client: int or socket):
                 remove_client(client_id)
 
     try:
-        clients.remove_client_socket(client)
+        clients.remove_client(id_to_remove)
     except Exception as e:
-        print("[remove_client] Error removing client:", str(e))
+        logging.error("[remove_client] Error removing client: %s", str(e), exc_info=True)
 
 
 def send_data_to_client(client_id, data):
@@ -41,20 +46,23 @@ def send_data_to_client(client_id, data):
         # Send the actual data
         clients.get_client(client_id).send(data)
     except Exception as e:
-        print("[send_data_to_client] Error sending data to client:", str(e))
-        # Remove the client from the list of clients
         remove_client(client_id)
 
 
 def broadcast_message(message):
-    for client_id in clients.get_client_ids():
+    ids_to_remove = []
+    client_ids = list(clients.get_client_ids())
+
+    for client_id in client_ids:
         try:
             # Pack the location data
             send_data_to_client(client_id, message.get_bytes())
         except Exception as e:
-            print("[broadcast_location] Error sending data to client:", str(e))
-            # Remove the client from the list of clients
-            remove_client(client_id)
+            logging.error("[broadcast_location] Error sending data to client: %s", str(e), exc_info=True)
+            ids_to_remove.append(client_id)
+
+    for client_id in ids_to_remove:
+        remove_client(client_id)
 
 
 def handle_message(client_socket):
@@ -73,7 +81,7 @@ def handle_message(client_socket):
                 clients.add_client(header.clientID, client_socket)
                 last_client_id = clients[-1]
 
-                print("Client", header.clientID, "connected, last_client_id:", last_client_id)
+                logging.log(msg="Client connected with ID: " + str(header.clientID), level=logging.INFO)
                 if clients.get_client_count() % 1 == 0:
                     broadcast_message(ServerMessage.from_json(header.clientID,
                                                               {"action": "create_string",
@@ -86,7 +94,7 @@ def handle_message(client_socket):
                 # Send the data to the client with the length field
                 broadcast_message(message)
         except Exception as e:
-            print("[handle_message] Error:", str(e))
+            logging.error("[handle_message] Error: %s", str(e), exc_info=True)
 
             # Remove the client from the list of clients
             remove_client(client_socket)
@@ -104,7 +112,7 @@ socket_server.bind((HOST, PORT))
 socket_server.listen(5)
 
 while True:
-    print("Waiting for a client...")
+    logging.log(msg="Waiting for a client...", level=logging.INFO)
     conn, address = socket_server.accept()
 
     # start a new thread to handle the client
