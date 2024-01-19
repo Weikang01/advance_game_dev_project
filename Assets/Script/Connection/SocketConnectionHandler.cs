@@ -38,7 +38,7 @@ public class SocketConnectionHandler : MonoBehaviour
 
                     if (!gameData.players.ContainsKey(entry.Key))
                     {
-                        gameData.players.Add(entry.Key, Instantiate(player, new Vector3(ingameMessage.playerPosX + 2, ingameMessage.playerPosY, 0), Quaternion.identity));
+                        gameData.AddOtherClientID(entry.Key, Instantiate(player, new Vector3(ingameMessage.playerPosX + 2, ingameMessage.playerPosY, 0), Quaternion.identity));
                         gameData.players[entry.Key].GetComponent<PlayerMovement>().isCurrentPlayer = false;
                     }
                     else
@@ -73,7 +73,9 @@ public class SocketConnectionHandler : MonoBehaviour
                 switch (systemMessage["action"])
                 {
                     case "create_string":
-                        // TODO: add string to gameData
+                        GameObject rope = Instantiate(Resources.Load("Prefabs/Rope", typeof(GameObject))) as GameObject;
+                        rope.GetComponent<Rope>().endA = gameData.players[short.Parse(systemMessage["from"])];
+                        rope.GetComponent<Rope>().endB = gameData.players[short.Parse(systemMessage["to"])];
                         break;
                 }
 
