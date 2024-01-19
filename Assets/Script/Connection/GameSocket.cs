@@ -7,11 +7,13 @@ using System.Net;
 using System;
 using System.Runtime.InteropServices;
 using UnityEditor.PackageManager;
+using Newtonsoft.Json;
 
 public class GameSocket
 {
     private Socket socket;
     public Dictionary<short, List<GameMessage.clientMessage>> client_messages;
+    public List<Dictionary<string, string>> system_messages;
     private static GameSocket instance;
     public static GameSocket GetInstance()
     {
@@ -37,6 +39,7 @@ public class GameSocket
         if (success)
         {
             client_messages = new Dictionary<short, List<GameMessage.clientMessage>>();
+            system_messages = new List<Dictionary<string, string>>();
             Thread thread = new Thread(new ThreadStart(ReceiveSocket));
             thread.IsBackground = true;
             thread.Start();
@@ -100,7 +103,7 @@ public class GameSocket
                     {
                         // converse message bytes to JSON
                         string message = System.Text.Encoding.UTF8.GetString(messageBytes);
-                        Debug.Log("Receive system message: " + message);
+                        system_messages.Add(JsonConvert.DeserializeObject<Dictionary<string, string>>(message));
                     }
                 }
             }

@@ -1,3 +1,4 @@
+import json
 import struct
 import ctypes
 from enum import Enum
@@ -65,6 +66,10 @@ class ServerMessage(ctypes.Structure):
     @classmethod
     def get_size(cls):
         return ctypes.sizeof(cls)
+
+    @classmethod
+    def from_json(cls, client_id, obj):
+        return cls(client_id, json.dumps(obj), MessageType.SYSTEM_MESSAGE.value)
 
 
 class ClientMessage(ctypes.Structure):

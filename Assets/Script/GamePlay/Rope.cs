@@ -10,10 +10,11 @@ public class Rope : MonoBehaviour
 {
     public GameObject endA;
     public GameObject endB;
+    private SpringJoint2D endA_sj, endB_sj;
 
     [Header("Rope physics")]
-    public int nr_segments = 8;
-    public float width = 0.1F;                      //  The width of the rope segments
+    public int nr_segments = 4;
+    public float width = 0.1F;                       //  The width of the rope segments
     public float ropeMass = 1.0F;                    //  The mass of each rope segment
     public float damping = 0.1F;                     //  The damping of each rope segment
 
@@ -25,6 +26,22 @@ public class Rope : MonoBehaviour
     void Start()
     {
         line = GetComponent<LineRenderer>();
+        segmentPos = new Vector3[nr_segments + 1];
+
+
+
+        if (!endA.GetComponent<SpringJoint2D>())
+            endA_sj = endA.AddComponent<SpringJoint2D>();
+        else endA_sj = endA.GetComponent<SpringJoint2D>();
+        if (!endB.GetComponent<SpringJoint2D>())
+            endB_sj = endB.AddComponent<SpringJoint2D>();
+        else endB_sj = endB.GetComponent<SpringJoint2D>();
+
+
+        if (!endA)
+            CreateEmptyEnd("A");
+        if (!endB)
+            CreateEmptyEnd("B");
 
         Initialize();
         DrawRope();
@@ -35,15 +52,6 @@ public class Rope : MonoBehaviour
         Rigidbody2D endA_rb = endA.GetComponent<Rigidbody2D>();
         Rigidbody2D endB_rb = endB.GetComponent<Rigidbody2D>();
 
-        SpringJoint2D endA_sj, endB_sj;
-        if (!endA.GetComponent<SpringJoint2D>())
-            endA_sj = endA.AddComponent<SpringJoint2D>();
-        else endA_sj = endA.GetComponent<SpringJoint2D>();
-        if (!endB.GetComponent<SpringJoint2D>())
-            endB_sj = endB.AddComponent<SpringJoint2D>();
-        else endB_sj = endB.GetComponent<SpringJoint2D>();
-
-        segmentPos = new Vector3[nr_segments + 1];
         segmentPos[0] = endA.transform.position;
         segmentPos[nr_segments] = endB.transform.position;
 
@@ -77,6 +85,9 @@ public class Rope : MonoBehaviour
 
             cur_prev_sj.dampingRatio = damping;
             cur_succ_sj.dampingRatio = damping;
+
+            cur_prev_sj.enableCollision = true;
+            cur_succ_sj.enableCollision = true;
 
             CircleCollider2D cur_cc = segments_objects[i - 1].AddComponent<CircleCollider2D>();
             cur_cc.radius = width;
@@ -120,10 +131,89 @@ public class Rope : MonoBehaviour
         line.SetPositions(segmentPos);
     }
 
+    public void DestroyRope()
+    {
+        Destroy(endA_sj);
+        Destroy(endB_sj);
+        foreach (GameObject segment in segments_objects)
+        {
+            Destroy(segment);
+        }
+        Destroy(gameObject);
+    }
+
+    private void CreateEmptyEnd(string which_end="A")
+    {
+        GameObject end = new GameObject("end" + which_end);
+        Rigidbody2D rb = end.AddComponent<Rigidbody2D>();
+        rb.mass = ropeMass;
+
+        if (which_end == "A")
+        {
+            if (segments_objects.Count != 0)
+            {
+                end.transform.position = segments_objects[0].transform.position;
+                segments_objects[0].GetComponent<SpringJoint2D>().connectedBody = rb;
+                for (int i = 1; i < segments_objects.Count; i++)
+                    foreach (SpringJoint2D cur_sj in segments_objects[i].GetComponents<SpringJoint2D>())
+                        cur_sj.distance = 0;
+            }
+            else
+                end.transform.position = transform.position;
+        }
+        else if (which_end == "B")
+        {
+            if (segments_objects.Count != 0)
+            {
+                end.transform.position = segments_objects[segments_objects.Count - 1].transform.position;
+                segments_objects[segments_objects.Count - 1].GetComponents<SpringJoint2D>()[1].connectedBody = rb;
+                for (int i = 1; i < segments_objects.Count; i++)
+                    foreach (SpringJoint2D cur_sj in segments_objects[i].GetComponents<SpringJoint2D>())
+                        cur_sj.distance = 0;
+            }
+            else
+                end.transform.position = transform.position;
+        }
+
+        CircleCollider2D cc = end.AddComponent<CircleCollider2D>();
+        cc.radius = width;
+
+        if (which_end == "A")
+        {
+            endA = end;
+            endA_sj = end.AddComponent<SpringJoint2D>();
+            endA_sj.connectedBody = rb;
+            endA_sj.enableCollision = true;
+            endA_sj.distance = 0;
+        }
+        else if (which_end == "B")
+        {
+            endB = end;
+            endB_sj = end.AddComponent<SpringJoint2D>();
+            endB_sj.connectedBody = rb;
+            endB_sj.enableCollision = true;
+            endB_sj.distance = 0;
+        }
+    }
+
 
     // Update is called once per frame
     void Update()
     {
+        if (!endA)
+        {
+            CreateEmptyEnd("A");
+            if (!endB)
+                CreateEmptyEnd("B");
+            Initialize();
+        }
+        if (!endB)
+        {
+            CreateEmptyEnd("B");
+            Initialize();
+        }
+
+
         DrawRope();
     }
 }
