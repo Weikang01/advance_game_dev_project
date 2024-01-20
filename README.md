@@ -22,3 +22,8 @@ Project Overview: A 2D platformer with features we've learned from research pape
   * NuGet (package manager) 
   * `Newtonsoft.Json`
 * The server's dependencies are listed in `server/requirements.txt`
+
+## Game Design
+
+
+

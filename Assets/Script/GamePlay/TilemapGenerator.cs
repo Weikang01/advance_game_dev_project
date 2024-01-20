@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+
 
 [RequireComponent(typeof(Tilemap))]
 public class TilemapGenerator : MonoBehaviour
@@ -24,13 +26,14 @@ public class TilemapGenerator : MonoBehaviour
     private Tilemap tilemap;
     private Tile[] availableTiles; // An array of tiles to choose from
 
-    public enum GenerationType
+    public enum GenerationAlgorithm
     {
         SimpleRandom,
-        TextureBaseGeneration
+        TextureBaseGeneration,
+        WaveFunctionCollapse
     }
 
-    public GenerationType generationType;
+    public GenerationAlgorithm generationType;
 
     [HideInInspector] public Texture2D referenceTexture;
     public enum Interpolation
@@ -46,15 +49,18 @@ public class TilemapGenerator : MonoBehaviour
         tilemap = GetComponent<Tilemap>();
         
         // get available tiles from the tilemap
-        Tilemap tm = reference.GetComponentInChildren<Tilemap>();
-        availableTiles = GetNonEmptyTiles(tm);
+        if (referenceTile == ReferenceTile.TileGrid)
+        {
+            Tilemap tm = reference.GetComponentInChildren<Tilemap>();
+            availableTiles = GetNonEmptyTiles(tm);
+        }
 
         switch (generationType)
         {
-            case GenerationType.SimpleRandom:
+            case GenerationAlgorithm.SimpleRandom:
                 RandomGenerateTilemap();
                 break;
-            case GenerationType.TextureBaseGeneration:
+            case GenerationAlgorithm.TextureBaseGeneration:
                 GenerateFromTexture();
                 break;
             default:
@@ -216,11 +222,4 @@ public class TilemapGenerator : MonoBehaviour
         // You can use any distance metric here. Euclidean distance is a common choice.
         return Mathf.Sqrt(Mathf.Pow(a.r - b.r, 2) + Mathf.Pow(a.g - b.g, 2) + Mathf.Pow(a.b - b.b, 2));
     }
-
-    TileBase GetRandomTile()
-    {
-        int randomIndex = UnityEngine.Random.Range(0, availableTiles.Length);
-        return availableTiles[randomIndex];
-    }
-
 }

@@ -23,9 +23,9 @@ public class TilemapGeneratorEditor : Editor
 
         switch (tilemapGenerator.generationType)
         {
-            case TilemapGenerator.GenerationType.SimpleRandom:
+            case TilemapGenerator.GenerationAlgorithm.SimpleRandom:
                 break;
-            case TilemapGenerator.GenerationType.TextureBaseGeneration:
+            case TilemapGenerator.GenerationAlgorithm.TextureBaseGeneration:
                 tilemapGenerator.referenceTexture = (Texture2D)EditorGUILayout.ObjectField("Reference Texture", tilemapGenerator.referenceTexture, typeof(Texture2D), false);
                 break;
         }
