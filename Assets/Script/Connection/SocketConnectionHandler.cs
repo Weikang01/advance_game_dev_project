@@ -97,4 +97,21 @@ public class SocketConnectionHandler : MonoBehaviour
     {
         gameSocket.SendMessage(gameData.clientID, ingameMessage);
     }
+
+
+    public void OnDestroy()
+    {
+        if (gameSocket != null)
+        {
+            gameSocket.Close(gameData.clientID);
+        }
+    }
+
+    public void OnApplicationQuit()
+    {
+        if (gameSocket != null)
+        {
+            gameSocket.Close(gameData.clientID);
+        }
+    }
 }

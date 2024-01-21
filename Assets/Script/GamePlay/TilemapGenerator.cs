@@ -1,26 +1,39 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+
 
 [RequireComponent(typeof(Tilemap))]
 public class TilemapGenerator : MonoBehaviour
 {
-    public Grid reference;
+    public enum ReferenceTile
+    {
+        TileGrid,
+        RuleTile
+    }
+
+    public ReferenceTile referenceTile;
+
+    [HideInInspector] public Grid reference;
+    [HideInInspector] public RuleTile ruleTile;
+
     public int width = 100;
     public int height = 100;
 
     private Tilemap tilemap;
     private Tile[] availableTiles; // An array of tiles to choose from
 
-    public enum GenerationType
+    public enum GenerationAlgorithm
     {
         SimpleRandom,
-        TextureBaseGeneration
+        TextureBaseGeneration,
+        WaveFunctionCollapse
     }
 
-    public GenerationType generationType;
+    public GenerationAlgorithm generationType;
 
     [HideInInspector] public Texture2D referenceTexture;
     public enum Interpolation
@@ -36,15 +49,18 @@ public class TilemapGenerator : MonoBehaviour
         tilemap = GetComponent<Tilemap>();
         
         // get available tiles from the tilemap
-        Tilemap tm = reference.GetComponentInChildren<Tilemap>();
-        availableTiles = GetNonEmptyTiles(tm);
+        if (referenceTile == ReferenceTile.TileGrid)
+        {
+            Tilemap tm = reference.GetComponentInChildren<Tilemap>();
+            availableTiles = GetNonEmptyTiles(tm);
+        }
 
         switch (generationType)
         {
-            case GenerationType.SimpleRandom:
+            case GenerationAlgorithm.SimpleRandom:
                 RandomGenerateTilemap();
                 break;
-            case GenerationType.TextureBaseGeneration:
+            case GenerationAlgorithm.TextureBaseGeneration:
                 GenerateFromTexture();
                 break;
             default:
@@ -78,7 +94,15 @@ public class TilemapGenerator : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 Vector3Int tilePosition = new Vector3Int(x, y, 0);
-                TileBase randomTile = GetRandomTile(); // Get a random tile from the array
+                if (referenceTile == ReferenceTile.TileGrid)
+                {
+                    tilemap.SetTile(tilePosition, availableTiles[UnityEngine.Random.Range(0, availableTiles.Length)]); // Set the random tile at the current position
+                }
+                else if (referenceTile == ReferenceTile.RuleTile)
+                {
+                    tilemap.SetTile(tilePosition, ruleTile);
+                }
+                TileBase randomTile = ruleTile; // Get a random tile from the array
                 tilemap.SetTile(tilePosition, randomTile); // Set the random tile at the current position
             }
         }
@@ -150,8 +174,15 @@ public class TilemapGenerator : MonoBehaviour
                 // Get the color of the pixel at the current position
                 Color pixelColor = interpolationFunc(referenceTexture, u, v);
 
-                // Find the closest matching tile from the availableTiles array based on pixelColor
-                TileBase closestTile = FindClosestTile(pixelColor);
+                TileBase closestTile = null;
+                if (referenceTile == ReferenceTile.TileGrid)
+                {
+                    closestTile = FindClosestTile(pixelColor);
+                }
+                else if (referenceTile == ReferenceTile.RuleTile)
+                {
+                    closestTile = pixelColor.a > 0.1f ? ruleTile : null;
+                }
 
                 // Set the tile in the tilemap at the current position
                 Vector3Int tilePosition = new Vector3Int(x, y, 0);
@@ -191,11 +222,4 @@ public class TilemapGenerator : MonoBehaviour
         // You can use any distance metric here. Euclidean distance is a common choice.
         return Mathf.Sqrt(Mathf.Pow(a.r - b.r, 2) + Mathf.Pow(a.g - b.g, 2) + Mathf.Pow(a.b - b.b, 2));
     }
-
-    TileBase GetRandomTile()
-    {
-        int randomIndex = UnityEngine.Random.Range(0, availableTiles.Length);
-        return availableTiles[randomIndex];
-    }
-
 }

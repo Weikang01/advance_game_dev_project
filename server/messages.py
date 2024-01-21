@@ -10,6 +10,18 @@ class MessageType(Enum):
     SYSTEM_MESSAGE = 2
 
 
+class ActionType(Enum):
+    MOVE = 9,
+    JUMP = 1,
+    ATTACK = 2,
+    SKILL = 3,
+    DIE = 4,
+    RESPAWN = 5,
+    GAMEOVER = 6,
+    QUIT = 7,
+    ENTER = 8,
+
+
 class MessageHeader(ctypes.Structure):
     _fields_ = [
         ("clientID", ctypes.c_short),

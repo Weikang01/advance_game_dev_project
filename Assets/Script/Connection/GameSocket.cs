@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Threading;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -215,5 +214,26 @@ public class GameSocket
             return Marshal.PtrToStructure(buffer, structType);
         }
         finally { Marshal.FreeHGlobal(buffer); }
+    }
+
+    public void Close(short clientID)
+    {
+        if (socket != null && socket.Connected)
+        {
+            try
+            {
+                // Create a disconnect message and send it to the server
+                GameMessage.clientMessage disconnectMessage = new GameMessage.clientMessage((short)GameMessage.ActionType.QUIT, clientID);
+                SendMessage(clientID, disconnectMessage);
+
+                // Close the socket
+                socket.Shutdown(SocketShutdown.Both);
+                socket.Close();
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Error during disconnect: " + e);
+            }
+        }
     }
 }

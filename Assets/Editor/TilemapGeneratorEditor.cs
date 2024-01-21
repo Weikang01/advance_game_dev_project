@@ -11,11 +11,21 @@ public class TilemapGeneratorEditor : Editor
         DrawDefaultInspector();
         TilemapGenerator tilemapGenerator = (TilemapGenerator)target;
 
+        switch (tilemapGenerator.referenceTile)
+        {
+            case TilemapGenerator.ReferenceTile.TileGrid:
+                tilemapGenerator.reference = (Grid)EditorGUILayout.ObjectField("Reference Grid", tilemapGenerator.reference, typeof(Grid), true);
+                break;
+            case TilemapGenerator.ReferenceTile.RuleTile:
+                tilemapGenerator.ruleTile = (RuleTile)EditorGUILayout.ObjectField("Rule Tile", tilemapGenerator.ruleTile, typeof(RuleTile), false);
+                break;
+        }
+
         switch (tilemapGenerator.generationType)
         {
-            case TilemapGenerator.GenerationType.SimpleRandom:
+            case TilemapGenerator.GenerationAlgorithm.SimpleRandom:
                 break;
-            case TilemapGenerator.GenerationType.TextureBaseGeneration:
+            case TilemapGenerator.GenerationAlgorithm.TextureBaseGeneration:
                 tilemapGenerator.referenceTexture = (Texture2D)EditorGUILayout.ObjectField("Reference Texture", tilemapGenerator.referenceTexture, typeof(Texture2D), false);
                 break;
         }

@@ -2,7 +2,7 @@ import socket
 import threading
 import logging
 
-from messages import MessageHeader, MessageType, ServerMessage, ClientMessage
+from messages import MessageHeader, MessageType, ServerMessage, ClientMessage, ActionType
 from clients import Clients
 
 dqn = None
@@ -69,6 +69,11 @@ def handle_message(client_socket):
     global dqn
     while True:
         try:
+            # handle client socket closing
+            if client_socket.fileno() == -1:
+                remove_client(client_socket)
+                break
+
             recvmsg = client_socket.recv(1024)
             if len(recvmsg) == 0:
                 break  # client disconnected
@@ -77,12 +82,15 @@ def handle_message(client_socket):
             header = MessageHeader.from_bytes(recvmsg[:MessageHeader.get_size()])
 
             if header.clientID not in clients.get_client_ids():
+                broadcast_message(ServerMessage.from_json(header.clientID,
+                                                          {"action": "new_client",
+                                                           "id": header.clientID}))
+
                 last_client_id = clients[-1] if len(clients) > 0 else 0
                 clients.add_client(header.clientID, client_socket)
-                last_client_id = clients[-1]
 
                 logging.log(msg="Client connected with ID: " + str(header.clientID), level=logging.INFO)
-                if clients.get_client_count() % 1 == 0:
+                if clients.get_client_count() % 2 == 0:
                     broadcast_message(ServerMessage.from_json(header.clientID,
                                                               {"action": "create_string",
                                                                "from": last_client_id,
@@ -91,10 +99,17 @@ def handle_message(client_socket):
             if header.messageType == MessageType.CLIENT_MESSAGE.value:
                 message = ClientMessage.from_bytes(recvmsg[:ClientMessage.get_size()])
 
-                # Send the data to the client with the length field
-                broadcast_message(message)
+                if message.action_type == ActionType.QUIT.value:
+                    remove_client(message.id)
+                    break
+                else:
+                    # Send the data to the client with the length field
+                    broadcast_message(message)
         except Exception as e:
-            logging.error("[handle_message] Error: %s", str(e), exc_info=True)
+            if isinstance(e, ConnectionResetError):
+                logging.log(msg="Client disconnected", level=logging.INFO)
+            else:
+                logging.error("[handle_message] Error: %s", str(e), exc_info=True)
 
             # Remove the client from the list of clients
             remove_client(client_socket)
