@@ -82,6 +82,10 @@ def handle_message(client_socket):
             header = MessageHeader.from_bytes(recvmsg[:MessageHeader.get_size()])
 
             if header.clientID not in clients.get_client_ids():
+                broadcast_message(ServerMessage.from_json(header.clientID,
+                                                          {"action": "new_client",
+                                                           "id": header.clientID}))
+
                 last_client_id = clients[-1] if len(clients) > 0 else 0
                 clients.add_client(header.clientID, client_socket)
 

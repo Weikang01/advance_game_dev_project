@@ -23,7 +23,3 @@ Project Overview: A 2D platformer with features we've learned from research pape
   * `Newtonsoft.Json`
 * The server's dependencies are listed in `server/requirements.txt`
 
-## Game Design
-
-
-
