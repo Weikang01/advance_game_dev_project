@@ -8,15 +8,25 @@ def create_database():
     # Create a cursor object using the cursor() method
     cursor = conn.cursor()
 
-    # Create table as per requirement
-    sql = '''CREATE TABLE users (
-                id INTEGER PRIMARY KEY,
-                username TEXT NOT NULL UNIQUE,
-                password TEXT NOT NULL,
-                email TEXT NOT NULL,
-                phone TEXT
-             )'''
-    cursor.execute(sql)
+    # Create users table
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER PRIMARY KEY,
+                        username TEXT NOT NULL UNIQUE,
+                        password TEXT NOT NULL,
+                        email TEXT NOT NULL,
+                        phone TEXT
+                      )''')
+
+    # Create player_profiles table
+    cursor.execute('''CREATE TABLE IF NOT EXISTS player_profiles (
+                        id INTEGER PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        display_name TEXT NOT NULL,
+                        avatar_url TEXT,
+                        level INTEGER NOT NULL DEFAULT 1,
+                        experience INTEGER NOT NULL DEFAULT 0,
+                        FOREIGN KEY (user_id) REFERENCES users (id)
+                      )''')
 
     # Commit your changes in the database
     conn.commit()

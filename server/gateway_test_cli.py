@@ -3,40 +3,61 @@ import json
 
 
 async def test_client(host='127.0.0.1', port=12345):
+    username = 'testuser36'
     reader, writer = await asyncio.open_connection(host, port)
 
-    # Example registration request
+    # Registration request
     registration_request = {
-        "register": True,
-        "username": "testuser",
+        "action": "register",
+        "username": username,
         "password": "testpassword",
-        "email": "testuser@example.com",
+        "email": "testuser34@example.com",
         "phone": "1234567890"
     }
     message = json.dumps(registration_request)
     print(f'Sending registration request: {message}')
     writer.write(message.encode())
-
     data = await reader.read(1024)
-    registration_response = json.loads(data.decode())
-    print(f'Received: {registration_response}')
+    print(f'Received: {data.decode()}')
 
-    if registration_response.get('status') == 'registered':
-        # Proceed with login if registration was successful
-        login_request = {
-            "login": True,
-            "username": "testuser",
-            "password": "testpassword"
-        }
-        message = json.dumps(login_request)
-        print(f'\nSending login request: {message}')
-        writer.write(message.encode())
+    # Login request
 
-        data = await reader.read(1024)
-        login_response = json.loads(data.decode())
-        print(f'Received: {login_response}')
-    else:
-        print("Registration failed or user already exists.")
+    login_request = {
+        "action": "login",
+        "username": username,
+        "password": "testpassword"
+    }
+    message = json.dumps(login_request)
+    print(f'\nSending login request: {message}')
+    writer.write(message.encode())
+    data = await reader.read(1024)
+    print(f'Received: {data.decode()}')
+
+    # Create profile request
+    create_profile_request = {
+        "action": "create_profile",
+        "username": username,
+        "display_name": "Test User",
+        "avatar_url": "http://example.com/avatar.jpg",
+        "level": 1,
+        "experience": 0
+    }
+    message = json.dumps(create_profile_request)
+    print(f'\nSending create profile request: {message}')
+    writer.write(message.encode())
+    data = await reader.read(1024)
+    print(f'Received: {data.decode()}')
+
+    # Load profile request
+    load_profile_request = {
+        "action": "load_profile",
+        "username": username
+    }
+    message = json.dumps(load_profile_request)
+    print(f'\nSending load profile request: {message}')
+    writer.write(message.encode())
+    data = await reader.read(1024)
+    print(f'Received: {data.decode()}')
 
     print('Closing the connection')
     writer.close()

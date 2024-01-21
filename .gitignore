@@ -73,3 +73,6 @@ crashlytics-build.properties
 
 # Python Server
 */.idea
+
+# Databases
+*.db
