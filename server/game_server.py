@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import json
-from common import send_request_to_storage_server
+from common import send_request_to_storage_server, send_request_to_caching_server
 
 # Additional imports for database handling, etc.
 
@@ -11,6 +11,11 @@ logger = logging.getLogger("GameServer")
 
 # Functions to handle specific data requests
 async def load_player_profile(username):
+    # First try to get the profile from cache
+    cached_profile = await send_request_to_caching_server("get_cached_player_profile", {"username": username})
+    if cached_profile:
+        return cached_profile
+    # If not in cache, load from storage server
     return await send_request_to_storage_server("load_profile", {"username": username})
 
 
@@ -30,7 +35,10 @@ async def create_player_profile(action, username, display_name, avatar_url, leve
         "level": level,
         "experience": experience
     }
-    return await send_request_to_storage_server("create_profile", profile_data)
+    # Save profile to storage server and cache
+    response = await send_request_to_storage_server("create_profile", profile_data)
+    await send_request_to_caching_server("cache_player_profile", {"username": username, "profile_data": profile_data})
+    return response
 
 
 async def update_player_profile(action, username, display_name=None, avatar_url=None, level=None, experience=None):
@@ -41,13 +49,15 @@ async def update_player_profile(action, username, display_name=None, avatar_url=
         "level": level,
         "experience": experience
     }
-    return await send_request_to_storage_server("update_profile", update_data)
+    # Update profile in storage server and cache
+    response = await send_request_to_storage_server("update_profile", update_data)
+    await send_request_to_caching_server("cache_player_profile", {"username": username, "profile_data": update_data})
+    return response
 
 
 async def handle_game_request(reader, writer):
     data = await reader.read(1024)
     message = data.decode()
-    response = {}
 
     try:
         request = json.loads(message)
@@ -67,6 +77,28 @@ async def handle_game_request(reader, writer):
         elif request.get("action") == "update_profile":
             # Extract data from request
             response = await update_player_profile(**request)
+        elif request.get("action") == "get_room_list":
+            response = await send_request_to_caching_server("get_room_list", {})
+        elif request.get("action") == "get_user_profiles_in_room":
+            room_id = request['room_id']
+            response = await send_request_to_caching_server("get_user_profiles_in_room", {"room_id": room_id})
+        elif request.get("action") == "create_room":
+            room_id = request['room_id']
+            room_data = request['room_data']
+            username = request['username']  # Assume username is provided in the request
+            response = await send_request_to_caching_server("create_room", {"room_id": room_id, "room_data": room_data,
+                                                                            "username": username})
+        elif request.get("action") == "enter_room":
+            room_id = request['room_id']
+            password = request.get('password')
+            username = request['username']
+
+            response = await send_request_to_caching_server("enter_room", {"room_id": room_id, "username": username,
+                                                                           "password": password})
+        elif request.get("action") == "leave_room":
+            room_id = request['room_id']
+            username = request['username']
+            response = await send_request_to_caching_server("leave_room", {"room_id": room_id, "username": username})
         else:
             response = {'error': 'Invalid request'}
 
