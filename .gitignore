@@ -76,3 +76,6 @@ crashlytics-build.properties
 
 # Databases
 *.db
+
+# pycache
+*/__pycache__

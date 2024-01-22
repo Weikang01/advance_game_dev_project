@@ -59,6 +59,53 @@ async def test_client(host='127.0.0.1', port=12345):
     data = await reader.read(1024)
     print(f'Received: {data.decode()}')
 
+    # List rooms request
+    list_rooms_request = {"action": "get_room_list"}
+    message = json.dumps(list_rooms_request)
+    print(f'\nSending list rooms request: {message}')
+    writer.write(message.encode())
+    data = await reader.read(1024)
+    print(f'Received: {data.decode()}')
+
+    # Create room request
+    create_room_request = {
+        "username": username,
+        "action": "create_room",
+        "room_id": "test_room",
+        "room_data": {"name": "Test Room", "password": "roompassword"}
+    }
+    message = json.dumps(create_room_request)
+    print(f'\nSending create room request: {message}')
+    writer.write(message.encode())
+    data = await reader.read(1024)
+    print(f'Received: {data.decode()}')
+
+    # Enter room request
+    enter_room_request = {
+        "username": username,
+        "action": "enter_room",
+        "room_id": "test_room",
+        "password": "roompassword"
+    }
+    message = json.dumps(enter_room_request)
+    print(f'\nSending enter room request: {message}')
+    writer.write(message.encode())
+    data = await reader.read(1024)
+    print(f'Received: {data.decode()}')
+
+    # Leave room request
+    # Assuming 'leave_room' action is implemented
+    leave_room_request = {
+        "username": username,
+        "action": "leave_room",
+        "room_id": "test_room"
+    }
+    message = json.dumps(leave_room_request)
+    print(f'\nSending leave room request: {message}')
+    writer.write(message.encode())
+    data = await reader.read(1024)
+    print(f'Received: {data.decode()}')
+
     print('Closing the connection')
     writer.close()
     await writer.wait_closed()

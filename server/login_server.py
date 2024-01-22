@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from common import send_request_to_storage_server
+from common import send_request_to_storage_server, send_request_to_caching_server
 
 # Setting up logging
 logging.basicConfig(level=logging.INFO)
@@ -19,6 +19,27 @@ async def handle_login_request(reader, writer):
             response = await send_request_to_storage_server('check_username', {"username": request['username']})
         elif request.get('action') in ['login', 'register']:
             response = await send_request_to_storage_server(request.get('login_action'), request)
+            if response.get('user_exists', False):
+                username = request.get('username')
+                new_login_address = f"{writer.get_extra_info('peername')[0]}:{writer.get_extra_info('peername')[1]}"
+
+                # Check for existing active session
+                existing_session = await send_request_to_caching_server("get_active_session", {"username": username})
+                if existing_session:
+                    # Prepare to terminate the existing session
+                    response['terminate_old_session'] = True
+                    response['old_session_address'] = existing_session.get('address')
+                    response['new_login_address'] = new_login_address
+
+                    # Clear the existing session
+                    await send_request_to_caching_server("clear_active_session", {"username": username})
+
+                # Set new session
+                await send_request_to_caching_server("set_session", {
+                    "address": new_login_address,
+                    "session_data": {"authenticated": True, "username": username}
+                })
+                await send_request_to_caching_server("set_active_session", {"username": username, "session_info": {"address": new_login_address}})
         else:
             response = {'error': 'Invalid request'}
 
