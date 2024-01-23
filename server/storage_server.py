@@ -109,18 +109,26 @@ def load_player_profile(username):
 
 
 def load_character_data(username):
+    user_id = get_user_id(username)
+    if user_id is None:
+        return {"status": "error", "message": "User not found"}
+
     conn = db_connect()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM character_data WHERE username = ?", (username,))
+    cursor.execute("SELECT * FROM character_data WHERE user_id = ?", (user_id,))
     character_data = cursor.fetchone()
     conn.close()
     return character_data or {"status": "error", "message": "Character data not found"}
 
 
 def load_friend_list(username):
+    user_id = get_user_id(username)
+    if user_id is None:
+        return {"status": "error", "message": "User not found"}
+
     conn = db_connect()
     cursor = conn.cursor()
-    cursor.execute("SELECT friend_username FROM friend_list WHERE username = ?", (username,))
+    cursor.execute("SELECT friend_id FROM friend_list WHERE user_id = ?", (user_id,))
     friends = cursor.fetchall()
     conn.close()
     return {"friends": [friend[0] for friend in friends]}

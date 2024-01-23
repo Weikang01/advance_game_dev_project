@@ -37,4 +37,5 @@ async def send_request_to_caching_server(action, data):
     writer.close()
     await writer.wait_closed()
 
-    return json.loads(response_data.decode())
+    r = json.loads(response_data)
+    return json.loads(r) if type(r) == str else r

@@ -23,6 +23,26 @@ class RedisManager:
         self.redis = None
         self.redis_uri = f'redis://{REDIS_HOST}:{REDIS_PORT}'
 
+    async def publish_to_channel(self, channel, message):
+        if not self.redis:
+            await self.connect()
+        await self.redis.publish(channel, message)
+
+    async def subscribe_to_channel(self, channel):
+        if not self.redis:
+            await self.connect()
+
+        pubsub = self.redis.pubsub()
+        await pubsub.subscribe(channel)
+
+        async for message in pubsub.listen():
+            if message['type'] == 'message':
+                # Handle the message
+                # For example, just return the message data
+                return message['data'].decode()
+
+        await pubsub.unsubscribe(channel)
+
     @staticmethod
     def start_redis_server():
         def find_redis_executable(file_name="redis-server.exe"):
@@ -112,7 +132,8 @@ class RedisManager:
         if not self.redis:
             await self.connect()
         rooms = await self.redis.smembers("rooms")
-        return json.dumps(list(rooms))
+        room_list = [room_key.decode('utf-8') for room_key in rooms]
+        return json.dumps(room_list)
 
     async def get_room_data(self, room_id):
         room_key = f"room:{room_id}"
@@ -166,13 +187,13 @@ class RedisManager:
         participants_key = f"{room_key}:participants"
         participants = await self.redis.smembers(participants_key)
 
-        profiles = []
+        profiles = {}
         for username in participants:
             profile_key = f"profile:{username.decode()}"  # usernames are stored as bytes in Redis set
             profile_data = await self.redis.hgetall(profile_key)
             if profile_data:
                 profile = {k.decode(): v.decode() for k, v in profile_data.items()}
-                profiles.append(profile)
+                profiles[username.decode()] = profile
 
         return json.dumps(profiles)
 
