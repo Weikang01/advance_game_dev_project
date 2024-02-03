@@ -15,6 +15,8 @@ public class PlayerMovement : MonoBehaviour
     internal float dirX = 0f;
     [SerializeField] private float moveSpeed = 7f;
     [SerializeField] private float jumpForce = 14f;
+    internal float tempSpeed = 0f;
+    internal float tempJump = 0f;
 
     // Start is called before the first frame update
     void Start()
@@ -22,6 +24,8 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<CapsuleCollider2D>();
         sprite = GetComponent<SpriteRenderer>();
+        tempSpeed = moveSpeed;
+        tempJump = jumpForce;
 
         GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
         ingameMessage.playerPosX = transform.position.x;
@@ -61,6 +65,16 @@ public class PlayerMovement : MonoBehaviour
                 ingameMessage.actionType = (short)GameMessage.ActionType.JUMP;
                 socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
             }
+
+            if (Input.GetButtonDown("Crouch") && IsGrounded())
+            {
+                Crouching();
+            }
+
+            if(Input.GetButtonUp("Crouch") && moveSpeed == 0f)
+            {
+                Standing();
+            }
         }
     }
 
@@ -92,5 +106,19 @@ public class PlayerMovement : MonoBehaviour
     private bool IsGrounded()
     {
         return Physics2D.CapsuleCast(coll.bounds.center, coll.bounds.size, coll.direction, 0.0f, Vector2.down, .1f, jumpableGround);
+    }
+
+    private void Crouching()
+    {
+        moveSpeed = 0f;
+        jumpForce = 0f;
+        rb.mass = 10000f;
+    }
+
+    private void Standing()
+    {
+        moveSpeed = tempSpeed;
+        jumpForce = tempJump;
+        rb.mass = 10f;
     }
 }
