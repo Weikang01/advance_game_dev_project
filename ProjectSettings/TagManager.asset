@@ -7,6 +7,7 @@ TagManager:
   - Ground
   - Key
   - GoldGate
+  - Ladder
   layers:
   - Default
   - TransparentFX
@@ -17,7 +18,7 @@ TagManager:
   - 
   - jumpableGround
   - IngameObject
-  - 
+  - Ladders
   - OnlyInteractWithGround
   - Key
   - 
