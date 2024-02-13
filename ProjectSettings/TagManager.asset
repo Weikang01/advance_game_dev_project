@@ -6,11 +6,12 @@ TagManager:
   tags:
   - Ground
   - Deadly
+  - SawPoint
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - SawPoint
   - Water
   - UI
   - 
@@ -40,6 +41,15 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 341773221
+    locked: 0
+  - name: Player
+    uniqueID: 1758605715
+    locked: 0
+  - name: Submerged
+    uniqueID: 171956873
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
