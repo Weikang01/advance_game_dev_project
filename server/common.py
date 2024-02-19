@@ -28,8 +28,10 @@ CACHING_SERVER_PORT = 12349
 async def send_request_to_caching_server(action, data):
     """Send a request to the caching server and return the response."""
     reader, writer = await asyncio.open_connection(CACHING_SERVER_HOST, CACHING_SERVER_PORT)
+    request = {"action": action, "session_data": json.dumps(data)}
 
-    request = {"action": action, **data}
+    print(request)
+
     writer.write(json.dumps(request).encode())
     await writer.drain()
 

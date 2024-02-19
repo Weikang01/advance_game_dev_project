@@ -32,7 +32,7 @@ def register_user(username, password, email, phone=None):
     cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
     if cursor.fetchone():
         conn.close()
-        return {"status": "error", "message": "Username already exists"}
+        return {"status": "error", "user_exists": True}
 
     # Insert new user
     cursor.execute("INSERT INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)",
@@ -137,9 +137,9 @@ def load_friend_list(username):
 async def handle_request(reader, writer):
     data = await reader.read(1024)
     message = data.decode()
-
     try:
         request = json.loads(message)
+        print(f"Received: {request} request.action: {request['action']}")
 
         if request['action'] == 'register':
             response = register_user(request['username'], request['password'], request['email'], request.get('phone'))

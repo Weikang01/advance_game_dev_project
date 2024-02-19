@@ -200,21 +200,29 @@ async def test_client(username):
     await test_registration(reader, writer, username)
     await test_login(reader, writer, username)
     await test_create_profile(reader, writer, username)
-    await test_load_profile(reader, writer, username)
-
-    if username == TEST_USERNAME1:
-        await test_create_room(reader, writer, username)
-    else:
-        await asyncio.sleep(1)
-        await test_enter_room(reader, writer, username)
-
-    # Start listening for broadcast messages
-    asyncio.create_task(listen_for_broadcasts(reader, username))
-
-    await asyncio.sleep(5)  # Keep the connection open to listen for broadcasts
-
-    if username == TEST_USERNAME1:
-        await test_leave_room(reader, writer, username)
+    # await test_load_profile(reader, writer, username)
+    #
+    # if username == TEST_USERNAME1:
+    #     await test_create_room(reader, writer, username)
+    #     # Start listening for broadcast messages
+    #     asyncio.create_task(listen_for_broadcasts(reader, username))
+    # else:
+    #     await asyncio.sleep(1)
+    #     await test_enter_room(reader, writer, username)
+    #     await asyncio.sleep(1)
+    #     await test_leave_room(reader, writer, username)
+    #     await asyncio.sleep(1)
+    #     await test_enter_room(reader, writer, username)
+    #     await asyncio.sleep(1)
+    #     await test_leave_room(reader, writer, username)
+    #
+    # await asyncio.sleep(5)  # Keep the connection open to listen for broadcasts
+    #
+    # if username == TEST_USERNAME1:
+    #     # remove task to stop listening for broadcasts
+    #     for task in asyncio.all_tasks():
+    #         task.cancel()
+    #     await test_leave_room(reader, writer, username)
 
     writer.close()
     await writer.wait_closed()

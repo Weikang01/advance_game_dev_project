@@ -34,10 +34,11 @@ async def forward_to_server(data, server_host, server_port):
     return response
 
 
-async def broadcast_to_room(room_id, message):
+async def broadcast_to_room(room_id, response, fn_after_broadcast=None):
     """Broadcast a message to all clients in a room."""
     participants = await send_request_to_caching_server("get_user_profiles_in_room", {"room_id": room_id})
-
+    response['user_profile'] = participants[response['username']]
+    message = json.dumps(response)
     for username in participants.keys():
         print(f"Broadcasting to {username}: {message} current connected clients: {connected_clients}")
         client = connected_clients.get(username)
@@ -50,15 +51,15 @@ async def broadcast_to_room(room_id, message):
                 logger.error(f"Error broadcasting to {username}: {e}")
                 client.close()
 
+        if fn_after_broadcast:
+            fn_after_broadcast()
+
 
 async def handle_client(reader, writer):
     global connected_clients
     address = writer.get_extra_info('peername')
     address_str = f"{address[0]}:{address[1]}"
     logger.info(f"Connection established with {address}")
-
-    await send_request_to_caching_server("set_session", {"address": address,
-                                                         "session_data": {"authenticated": False, "username": None}})
 
     while True:
         data = await reader.read(1024)
@@ -76,31 +77,35 @@ async def handle_client(reader, writer):
             expired = await send_request_to_caching_server("is_session_expired", {"address": address_str})
             if expired:
                 logger.info(f"Session expired for {address}")
-                await send_request_to_caching_server("set_session", {"address": address_str,
-                                                                     "session_data": {"authenticated": False,
-                                                                                      "username": None}})
+                await send_request_to_caching_server("update_session", {"address": address_str})
                 writer.write(json.dumps({'error': 'Session expired'}).encode())
                 await writer.drain()
                 continue
 
             if 'action' in request:
                 if request['action'] in ['login', 'register', 'check_username']:
+                    request['address'] = address_str
+                    print(f"Forwarding request to login server: {request}")
+                    data = json.dumps(request).encode()
                     response = await forward_to_server(data, LOGIN_SERVER_HOST, LOGIN_SERVER_PORT)
                     writer.write(response)
                 else:
                     session_data = await send_request_to_caching_server("get_session", {"address": address_str})
+                    print(f"request: {request} session_data: {session_data} address: {address_str}")
                     if session_data.get("authenticated") == 'true':
                         if request['action'] in ['create_room', 'enter_room']:
                             room_id = request['room_id']
                             username = session_data.get("username")
                             connected_clients[username] = writer
-                            await broadcast_to_room(room_id, username)
+                            print(f"Connected clients: {connected_clients}")
+                            resp = {'action': request['action'], 'username': username}
+                            await broadcast_to_room(room_id, resp)
 
                         elif request['action'] == 'leave_room':
                             room_id = request['room_id']
                             username = session_data.get("username")
-                            await broadcast_to_room(room_id, username)
-                            connected_clients.pop(username, None)
+                            resp = {'action': request['action'], 'username': username}
+                            await broadcast_to_room(room_id, resp, fn_after_broadcast=lambda: connected_clients.pop(username, None))
 
                         # Forward game-related requests to the game server
                         elif request['action'] in ['load_profile', 'load_character_data', 'load_friends',

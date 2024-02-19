@@ -78,21 +78,42 @@ class RedisManager:
                     self.redis = None
 
     async def get_session(self, address):
-        session_data_bytes = await self.redis.hgetall(self.get_address_string(address))
-        # Convert byte data to string
-        session_data = {k.decode('utf-8'): v.decode('utf-8') for k, v in session_data_bytes.items()}
-        return session_data
+        try:
+            session_data_bytes = await self.redis.hgetall(address)
+            # Convert byte data to string
+            session_data = {k.decode('utf-8'): v.decode('utf-8') for k, v in session_data_bytes.items()}
+            return session_data
+        except Exception as e:
+            logger.error(f"Error getting session data: {e}")
+            return {}
 
     async def set_session(self, address, session_data):
         if not self.redis:
             await self.connect()
             if not self.redis:
                 return
-        address_str = self.get_address_string(address)
         session_data_serialized = {k: json.dumps(v) if isinstance(v, (bool, dict, list, tuple)) or v is None else v
                                    for k, v in session_data.items()}
-        await self.redis.hset(address_str, mapping=session_data_serialized)
-        await self.redis.expire(address_str, SESSION_TIMEOUT)
+        await self.redis.hset(address, mapping=session_data_serialized)
+        await self.redis.expire(address, SESSION_TIMEOUT)
+
+    async def update_session(self, address, new_session_data):
+        if not self.redis:
+            await self.connect()
+            if not self.redis:
+                return
+        # get original session data
+        session_data_bytes = await self.redis.hgetall(address)
+        # Convert byte data to json
+        session_data = {k.decode('utf-8'): json.loads(v.decode('utf-8')) for k, v in session_data_bytes.items()}
+        # update session data
+        session_data.update(new_session_data)
+        # Convert json data to string
+        session_data_serialized = {k: json.dumps(v) if isinstance(v, (bool, dict, list, tuple)) or v is None else v
+                                   for k, v in session_data.items()}
+
+        await self.redis.hmset(address, session_data_serialized)
+        await self.redis.expire(address, SESSION_TIMEOUT)
 
     async def cache_player_profile(self, username, profile_data):
         if not self.redis:
@@ -111,10 +132,16 @@ class RedisManager:
         return None
 
     async def update_last_activity(self, address):
-        await self.redis.hset(self.get_address_string(address), "last_activity", time.time())
+        if not self.redis:
+            await self.connect()
+        # renew session
+        await self.redis.expire(address, SESSION_TIMEOUT)
 
     async def is_session_expired(self, address):
-        last_activity = await self.redis.hget(self.get_address_string(address), "last_activity")
+        if not self.redis:
+            await self.connect()
+        last_activity = await self.redis.hget(address, "last_activity")
+        print("last_activity: ", last_activity)
         return last_activity is None or (time.time() - float(last_activity)) > SESSION_TIMEOUT
 
     async def create_room(self, room_id, room_data, creator_username):
