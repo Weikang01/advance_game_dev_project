@@ -13,6 +13,11 @@ public class UGame : Singleton<UGame>
 
     public GetUGameInfo uGameInfo = null;
     public int zoneid = -1;
+    public int matchid = -1;
+    public int self_teamid = -1;
+    public int self_seatid = -1;
+    public List<OnOtherEnteredMatch> other_users = new List<OnOtherEnteredMatch>();
+    public List<CharacterInfo> match_players_info = new List<CharacterInfo>();
 
     public void SaveUInfo(UserCenterInfo uinfo, bool is_guest, string guest_key)
     {

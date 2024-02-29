@@ -42,6 +42,6 @@ public class SystemServiceProxy : Singleton<SystemServiceProxy>
 
     public void GetUgameInfo()
     {
-        Network.Instance.sendProtoBufCmd((int)Stype.ESystem, (int)Cmd.EGetUgameInfoReq, null);
+        Network.Instance.SendProtoBufCmd((int)Stype.ESystem, (int)Cmd.EGetUgameInfoReq, null);
     }
 }
