@@ -152,7 +152,7 @@ public class AuthServiceProxy : Singleton<AuthServiceProxy>
         GuestLoginReq req = new GuestLoginReq();
         req.GuestKey = this.g_key;
 
-        Network.Instance.sendProtoBufCmd((int)Stype.EAuth, (int)Cmd.EGuestLoginReq, req);
+        Network.Instance.SendProtoBufCmd((int)Stype.EAuth, (int)Cmd.EGuestLoginReq, req);
     }
 
     public void EditProfile(string unick, int uavatar, int usex)
@@ -167,7 +167,7 @@ public class AuthServiceProxy : Singleton<AuthServiceProxy>
         this.tempEditProfileReq.Usysavatar = uavatar;
         this.tempEditProfileReq.Usex = usex;
 
-        Network.Instance.sendProtoBufCmd((int)Stype.EAuth, (int)Cmd.EEditProfileReq, this.tempEditProfileReq);
+        Network.Instance.SendProtoBufCmd((int)Stype.EAuth, (int)Cmd.EEditProfileReq, this.tempEditProfileReq);
     }
 
     public void UpgradeAccount(string uname, string md5_pwd)
@@ -176,7 +176,7 @@ public class AuthServiceProxy : Singleton<AuthServiceProxy>
         req.Uname = uname;
         req.UpwdMd5 = md5_pwd;
 
-        Network.Instance.sendProtoBufCmd((int)Stype.EAuth, (int)Cmd.EGuestUpgradeReq, req);
+        Network.Instance.SendProtoBufCmd((int)Stype.EAuth, (int)Cmd.EGuestUpgradeReq, req);
     }
 
     internal void UserAccountLogin(string uname, string upwd)
@@ -188,11 +188,11 @@ public class AuthServiceProxy : Singleton<AuthServiceProxy>
         req.Uname = uname;
         req.UpwdMd5 = md5_pwd;
 
-        Network.Instance.sendProtoBufCmd((int)Stype.EAuth, (int)Cmd.EUserLoginReq, req);
+        Network.Instance.SendProtoBufCmd((int)Stype.EAuth, (int)Cmd.EUserLoginReq, req);
     }
 
     internal void UserLogout()
     {
-        Network.Instance.sendProtoBufCmd((int)Stype.EAuth, (int)Cmd.ELogoutReq, null);
+        Network.Instance.SendProtoBufCmd((int)Stype.EAuth, (int)Cmd.ELogoutReq, null);
     }
 }

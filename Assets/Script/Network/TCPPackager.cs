@@ -19,7 +19,7 @@ public class TCPPackager
         return cmd;
     }
 
-    public static bool read_header(byte[] data, int data_len, out int header_len, out int package_len)
+    public static bool ReadHeader(byte[] data, int data_len, out int header_len, out int package_len)
     {
         if (data_len < HEADER_SIZE)
         {

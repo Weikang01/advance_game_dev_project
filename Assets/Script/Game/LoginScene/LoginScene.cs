@@ -12,11 +12,13 @@ public class LoginScene : MonoBehaviour
     private void OnLoginSuccess(string name, object udata)
     {
         SystemServiceProxy.Instance.GetUgameInfo();
+        Debug.Log("OnLoginSuccess");
     }
 
     private void OnGetUgameInfo(string name, object udata)
     {
         LogicServiceProxy.Instance.LogicLogin();
+        Debug.Log("OnGetUgameInfo");
     }
 
     private void OnLogicLoginSuccess(string name, object udata)
@@ -24,6 +26,7 @@ public class LoginScene : MonoBehaviour
         // Load game data
         SystemServiceProxy.Instance.GetUgameInfo();
         SceneManager.LoadScene("HomeScene");
+        Debug.Log("OnLogicLoginSuccess");
     }
 
     // Start is called before the first frame update
@@ -50,6 +53,7 @@ public class LoginScene : MonoBehaviour
     {
         if (this.unameInput.text.Length <= 0 || this.upwdInput.text.Length <= 0)
         {
+            Debug.Log("Username or password is empty");
             return;
         }
 
