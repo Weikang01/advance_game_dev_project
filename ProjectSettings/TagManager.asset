@@ -7,6 +7,9 @@ TagManager:
   - Ground
   - Deadly
   - SawPoint
+  - Key
+  - GoldGate
+  - Ladder
   layers:
   - Default
   - TransparentFX
@@ -17,9 +20,9 @@ TagManager:
   - 
   - jumpableGround
   - IngameObject
-  - 
+  - Ladders
   - OnlyInteractWithGround
-  - 
+  - Key
   - 
   - 
   - 
