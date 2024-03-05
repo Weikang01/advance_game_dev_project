@@ -16,6 +16,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float moveSpeed = 7f;
     [SerializeField] private float jumpForce = 14f;
 
+    //Vector3 move;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -37,6 +39,8 @@ public class PlayerMovement : MonoBehaviour
         if (isCurrentPlayer)
         {
             dirX = Input.GetAxisRaw("Horizontal");
+
+            //move = new Vector3(Input.GetAxis("Horizontal"), 0f, 0f);
 
             if (dirX != 0)
             {
@@ -69,6 +73,8 @@ public class PlayerMovement : MonoBehaviour
         dirX = face_direction;
         //rb.AddForce(new Vector2(face_direction * moveSpeed, rb.velocity.y) * rb.mass);
         rb.velocity = new Vector2(face_direction * moveSpeed, rb.velocity.y);
+
+        //transform.position += moveSpeed * Time.fixedDeltaTime * move;
     }
 
     public void Jump()
