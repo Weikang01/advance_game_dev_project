@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2572046102852936751}
   - component: {fileID: 2572046102852936750}
   - component: {fileID: 2572046102852936749}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -125,6 +125,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxPlayersNeeded: 4
+  LevelCompleteScreen: {fileID: 0}
+  Player1: {fileID: 0}
+  Player2: {fileID: 0}
+  Player3: {fileID: 0}
+  Player4: {fileID: 0}
 --- !u!1 &2572046103351215727
 GameObject:
   m_ObjectHideFlags: 0
