@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1996227819716428337}
   - component: {fileID: 1996227819716428350}
   - component: {fileID: 1996227819716428351}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Button
   m_TagString: Button
   m_Icon: {fileID: 0}
@@ -208,7 +208,7 @@ GameObject:
   - component: {fileID: 1996227820454751199}
   - component: {fileID: 1996227820454751196}
   - component: {fileID: 1996227820454751197}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Button (1)
   m_TagString: Button
   m_Icon: {fileID: 0}

@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TileGenerationTestGround.unity
     guid: dc0f2ed60853486479ccb58f579ab0ca
+  - enabled: 1
+    path: Assets/Script/LevelEndScreen.unity
+    guid: 8c50e04fce5367643a71036e84905176
   m_configObjects: {}

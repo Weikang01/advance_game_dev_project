@@ -11,12 +11,17 @@ public class PlayerMovement : MonoBehaviour
     public SocketConnectionHandler socketConnectionHandler;
 
     [SerializeField] private LayerMask jumpableGround;
+    [SerializeField] GameObject ConnectedPlayer;
 
     internal float dirX = 0f;
     [SerializeField] private float moveSpeed = 7f;
     [SerializeField] private float jumpForce = 14f;
     internal float tempSpeed = 0f;
     internal float tempJump = 0f;
+    internal float potentialDistX;
+    internal float potentialDistY;
+    internal float potentialDistZ;
+    internal bool crouchingPlayer = false;
 
     //Vector3 move;
 
@@ -28,6 +33,9 @@ public class PlayerMovement : MonoBehaviour
         sprite = GetComponent<SpriteRenderer>();
         tempSpeed = moveSpeed;
         tempJump = jumpForce;
+        potentialDistX = this.transform.position.x - ConnectedPlayer.transform.position.x;
+        potentialDistY = this.transform.position.y - ConnectedPlayer.transform.position.y;
+        potentialDistZ = Mathf.Sqrt((potentialDistX * potentialDistX) + (potentialDistY * potentialDistY));
 
         GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
         ingameMessage.playerPosX = transform.position.x;
@@ -70,14 +78,25 @@ public class PlayerMovement : MonoBehaviour
                 socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
             }
 
+            if(Input.GetButtonUp("Crouch") && moveSpeed == 0f)
+            {
+                Standing();
+            }
+
             if (Input.GetButtonDown("Crouch") && IsGrounded())
             {
                 Crouching();
             }
-
-            if(Input.GetButtonUp("Crouch") && moveSpeed == 0f)
+            if (crouchingPlayer == false)
             {
-                Standing();
+                potentialDistX = this.transform.position.x - ConnectedPlayer.transform.position.x;
+                potentialDistY = this.transform.position.y - ConnectedPlayer.transform.position.y;
+                potentialDistZ = Mathf.Sqrt((potentialDistX * potentialDistX) + (potentialDistY * potentialDistY));
+                print(potentialDistZ);
+                if(potentialDistZ > 3.0)
+                {
+                    this.rb.velocity = new Vector2(-0.4f * potentialDistX, -0.4f * potentialDistY);
+                }
             }
         }
     }
@@ -85,7 +104,6 @@ public class PlayerMovement : MonoBehaviour
     public void Move(float face_direction)
     {
         dirX = face_direction;
-        //rb.AddForce(new Vector2(face_direction * moveSpeed, rb.velocity.y) * rb.mass);
         rb.velocity = new Vector2(face_direction * moveSpeed, rb.velocity.y);
 
         //transform.position += moveSpeed * Time.fixedDeltaTime * move;
@@ -94,7 +112,6 @@ public class PlayerMovement : MonoBehaviour
     public void Jump()
     {
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-        //rb.AddForce(new Vector2(rb.velocity.x, jumpForce) * rb.mass);
     }
 
     private void FixedUpdate()
@@ -118,13 +135,13 @@ public class PlayerMovement : MonoBehaviour
     {
         moveSpeed = 0f;
         jumpForce = 0f;
-        rb.mass = 10000f;
+        crouchingPlayer = true;
     }
 
     private void Standing()
     {
         moveSpeed = tempSpeed;
         jumpForce = tempJump;
-        rb.mass = 10f;
+        crouchingPlayer = false;
     }
 }

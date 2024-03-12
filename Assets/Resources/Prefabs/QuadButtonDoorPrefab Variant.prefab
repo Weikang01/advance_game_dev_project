@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 483750326}
   - component: {fileID: 483750325}
   - component: {fileID: 483750328}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Button3
   m_TagString: Button
   m_Icon: {fileID: 0}
@@ -161,7 +161,7 @@ GameObject:
   - component: {fileID: 2090383209}
   - component: {fileID: 2090383208}
   - component: {fileID: 2090383211}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Button4
   m_TagString: Button
   m_Icon: {fileID: 0}
@@ -345,7 +345,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1996227821135700845, guid: 4f9ef99e60ae9d7489694c1b125bc7ed, type: 3}
       propertyPath: m_Name
-      value: QuadButtonDoorPrefab
+      value: QuadButtonDoorPrefab Variant
       objectReference: {fileID: 0}
     - target: {fileID: 5858384203297179475, guid: 4f9ef99e60ae9d7489694c1b125bc7ed, type: 3}
       propertyPath: m_Name
