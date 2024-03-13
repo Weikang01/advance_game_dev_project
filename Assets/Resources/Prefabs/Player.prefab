@@ -76,7 +76,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: -787407629, guid: c483493eb3ec0f143b5d78ad823ac661, type: 3}
+  m_Sprite: {fileID: -1072411603, guid: 1b841d44b06925f4fbf4931ac47e98a7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -106,6 +106,9 @@ MonoBehaviour:
     m_Bits: 128
   moveSpeed: 2
   jumpForce: 3
+  animator: {fileID: 0}
+  onGround: 0
+  laddersClass: {fileID: 0}
 --- !u!70 &2942720145405823866
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -119,8 +122,8 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.0028662682, y: -0.14152843}
-  m_Size: {x: 0.6437578, y: 0.7469431}
+  m_Offset: {x: 0, y: 0}
+  m_Size: {x: 0.8, y: 1.8}
   m_Direction: 0
 --- !u!50 &2942720145405823867
 Rigidbody2D:

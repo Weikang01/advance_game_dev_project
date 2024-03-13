@@ -8,6 +8,7 @@ TagManager:
   - Key
   - GoldGate
   - Ladder
+  - Border
   layers:
   - Default
   - TransparentFX
@@ -22,7 +23,7 @@ TagManager:
   - OnlyInteractWithGround
   - Key
   - 
-  - 
+  - Border
   - 
   - 
   - 
