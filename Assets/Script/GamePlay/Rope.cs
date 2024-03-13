@@ -9,7 +9,7 @@ public class Rope : MonoBehaviour
     private SpringJoint2D endA_sj, endB_sj;
 
     [Header("Rope physics")]
-    public int nr_segments = 4;
+    public int nr_segments = 1;
     public float width = 0.1F;                       //  The width of the rope segments
     public float ropeMass = 1.0F;                    //  The mass of each rope segment
     public float damping = 0.1F;                     //  The damping of each rope segment
@@ -129,13 +129,34 @@ public class Rope : MonoBehaviour
 
     public void DestroyRope()
     {
-        Destroy(endA_sj);
-        Destroy(endB_sj);
         foreach (GameObject segment in segments_objects)
         {
             Destroy(segment);
         }
-        Destroy(gameObject);
+    }
+
+    public void Restart()
+    {
+        line = GetComponent<LineRenderer>();
+        segmentPos = new Vector3[nr_segments + 1];
+
+
+
+        if (!endA.GetComponent<SpringJoint2D>())
+            endA_sj = endA.AddComponent<SpringJoint2D>();
+        else endA_sj = endA.GetComponent<SpringJoint2D>();
+        if (!endB.GetComponent<SpringJoint2D>())
+            endB_sj = endB.AddComponent<SpringJoint2D>();
+        else endB_sj = endB.GetComponent<SpringJoint2D>();
+
+
+        if (!endA)
+            CreateEmptyEnd("A");
+        if (!endB)
+            CreateEmptyEnd("B");
+
+        Initialize();
+        DrawRope();
     }
 
     private void CreateEmptyEnd(string which_end="A")
