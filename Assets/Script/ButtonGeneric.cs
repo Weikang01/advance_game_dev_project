@@ -11,7 +11,10 @@ public class ButtonGeneric : MonoBehaviour
     //when the player steps on the button it will return the currentbutton and true to the door function
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        Collider2D button_base = gameObject.GetComponentInChildren<BoxCollider2D>();
+
+        if (collision.gameObject.CompareTag("Player") 
+            && collision.otherCollider.gameObject.name != button_base.gameObject.name)
         {
             genricFunction.doorFunc(true, currentButton);
         }
@@ -19,7 +22,10 @@ public class ButtonGeneric : MonoBehaviour
     //when the player steps off the button it will return the currentbutton and true to the door function
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        Collider2D button_base = gameObject.GetComponentInChildren<BoxCollider2D>();
+
+        if (collision.gameObject.CompareTag("Player")
+            && collision.otherCollider.gameObject.name != button_base.gameObject.name)
         {
             genricFunction.doorFunc(false, currentButton);
         }
