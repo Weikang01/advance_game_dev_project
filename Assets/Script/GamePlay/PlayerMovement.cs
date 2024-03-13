@@ -96,12 +96,12 @@ public class PlayerMovement : MonoBehaviour
 
             if(Input.GetButtonUp("Crouch") && moveSpeed == 0f)
             {
-                Standing();
+                //Standing();
             }
 
             if (Input.GetButtonDown("Crouch") && IsGrounded())
             {
-                Crouching();
+                //Crouching();
             }
             if (crouchingPlayer == false)
             {
