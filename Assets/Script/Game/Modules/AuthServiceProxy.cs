@@ -138,8 +138,9 @@ public class AuthServiceProxy : Singleton<AuthServiceProxy>
 
     public void GuestLogin()
     {
-        if (!PlayerPrefs.HasKey("guest_key"))
-        {
+        //if (!PlayerPrefs.HasKey("guest_key"))
+        if (true)
+            {
             this.g_key = Utils.RandomString(32);
             PlayerPrefs.SetString("guest_key", this.g_key);
             this.is_save_gkey = true;

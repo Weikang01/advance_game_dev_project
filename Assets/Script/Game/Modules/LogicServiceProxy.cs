@@ -31,7 +31,7 @@ public class LogicServiceProxy : Singleton<LogicServiceProxy>
             return;
         }
 
-        EventManager.Instance.DispatchEvent("enterZoneSuccess", null);
+        EventManager.Instance.DispatchEvent("enterZoneSuccess", res);
     }
 
     void OnEnterMatch(cmd_msg msg)
@@ -53,7 +53,6 @@ public class LogicServiceProxy : Singleton<LogicServiceProxy>
         OnOtherEnteredMatch res = ProtoManager.DeserializeProtobuf<OnOtherEnteredMatch>(msg.body);
         if (msg.body == null)
             return;
-
         UGame.Instance.other_users.Add(res);
         EventManager.Instance.DispatchEvent("otherEnteredMatch", res);
     }
@@ -110,6 +109,15 @@ public class LogicServiceProxy : Singleton<LogicServiceProxy>
         EventManager.Instance.DispatchEvent("onLogicUpdate", res);
     }
 
+    void OnGameFinished(cmd_msg msg)
+    {
+        GameFinishedRes res = ProtoManager.DeserializeProtobuf<GameFinishedRes>(msg.body);
+        if (msg.body == null)
+            return;
+
+        EventManager.Instance.DispatchEvent("gameFinished", res);
+    }
+
     void OnLogicServerReturn(cmd_msg msg)
     {
         switch (msg.ctype)
@@ -137,6 +145,9 @@ public class LogicServiceProxy : Singleton<LogicServiceProxy>
                 break;
             case (int)Cmd.ELogicFrame:
                 OnLogicFrame(msg);
+                break;
+            case (int)Cmd.EGameFinishedRes:
+                OnGameFinished(msg);
                 break;
         }
     }
@@ -174,5 +185,10 @@ public class LogicServiceProxy : Singleton<LogicServiceProxy>
     public void SendNextFrameOpts(NextFrameOpt nextFrameOpt)
     {
         Network.Instance.UDPSendProtoBufCmd((int)Stype.ELogic, (int)Cmd.ENextFrameOpt, nextFrameOpt);
+    }
+
+    public void PlayerAtFinishPoint()
+    {
+        Network.Instance.SendProtoBufCmd((int)Stype.ELogic, (int)Cmd.EGameFinishedReq, null);
     }
 }

@@ -24,7 +24,6 @@ public class ProtoManager
 
     private const int HEADER_SIZE = 8;  // 2 bytes for stype, 2 bytes for ctype, 4 bytes for utag
 
-
     private static byte[] SerializeProtobuf(Google.Protobuf.IMessage message)
     {
         if (message == null)

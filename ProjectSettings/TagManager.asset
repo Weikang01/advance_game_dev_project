@@ -10,6 +10,9 @@ TagManager:
   - Key
   - GoldGate
   - Ladder
+  - FinishPoint
+  - NotInteractable
+  - DeathPoint
   layers:
   - Default
   - TransparentFX
@@ -23,7 +26,7 @@ TagManager:
   - Ladders
   - OnlyInteractWithGround
   - Key
-  - 
+  - NotInteractable
   - 
   - 
   - 

@@ -28,7 +28,7 @@ public class Network : UnitySingleton<Network>
     Socket udp_socket = null;
     private byte[] udp_recv_buffer = new byte[60 * 1024];
     private Thread udp_recv_thread;
-    public int local_udp_port = 8888;
+    public int local_udp_port = 8004;
 
 
     // event queue
@@ -45,12 +45,10 @@ public class Network : UnitySingleton<Network>
     {
         ConnectedToServer();
         InitUDPSocket();
-
         // Test
         //this.Invoke("Test", 2.0f);
         //this.InvokeRepeating("TestUDP", 2.0f, 2.0f);
     }
-
 
     void Update()
     {
@@ -366,6 +364,7 @@ public class Network : UnitySingleton<Network>
 
     private void InitUDPSocket()
     {
+        this.local_udp_port += UnityEngine.Random.Range(0, 1000);
         this.udp_remote_endpoint = new IPEndPoint(IPAddress.Parse(this.udp_serverIP), this.udp_port);
 
         this.udp_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);

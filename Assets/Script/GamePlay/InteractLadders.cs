@@ -8,8 +8,7 @@ public class InteractLadders : MonoBehaviour
     public float moveSpeed = 5f;
     private bool onLadder = false;
     private bool climbing = false;
-
-    [SerializeField] private new Rigidbody2D rigidbody;
+    private Rigidbody2D controller;
 
     // Update is called once per frame
     void Update()
@@ -28,17 +27,17 @@ public class InteractLadders : MonoBehaviour
         {
             if (vertical != 0f)
             {
-                rigidbody.gravityScale = 0f;
-                rigidbody.velocity = new Vector2(rigidbody.velocity.x, vertical * moveSpeed);
+                controller.gravityScale = 0f;
+                controller.velocity = new Vector2(controller.velocity.x, vertical * moveSpeed);
             }
             else
             {
-                rigidbody.gravityScale = 0.05f;
+                controller.gravityScale = 0.05f;
             }
         }
         else
         {
-            rigidbody.gravityScale = 2f;
+            controller.gravityScale = 2f;
         }
     }
 

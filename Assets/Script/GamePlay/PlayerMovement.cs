@@ -8,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private CapsuleCollider2D coll;
     private SpriteRenderer sprite;
-    public SocketConnectionHandler socketConnectionHandler;
+    //public SocketConnectionHandler socketConnectionHandler;
 
     [SerializeField] private LayerMask jumpableGround;
 
@@ -29,12 +29,12 @@ public class PlayerMovement : MonoBehaviour
         tempSpeed = moveSpeed;
         tempJump = jumpForce;
 
-        GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
-        ingameMessage.playerPosX = transform.position.x;
-        ingameMessage.playerPosY = transform.position.y;
-        ingameMessage.actionType = (short)GameMessage.ActionType.ENTER;
-        if (isCurrentPlayer)
-            socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
+        //GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
+        //ingameMessage.playerPosX = transform.position.x;
+        //ingameMessage.playerPosY = transform.position.y;
+        //ingameMessage.actionType = (short)GameMessage.ActionType.ENTER;
+        //if (isCurrentPlayer)
+        //    socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
     }
 
     // Update is called once per frame
@@ -50,24 +50,24 @@ public class PlayerMovement : MonoBehaviour
             {
                 Move(dirX);
 
-                GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
+                //GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
 
-                ingameMessage.playerPosX = transform.position.x;
-                ingameMessage.playerPosY = transform.position.y;
-                ingameMessage.faceDirection = dirX;
-                ingameMessage.actionType = (short)GameMessage.ActionType.MOVE;
-                socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
+                //ingameMessage.playerPosX = transform.position.x;
+                //ingameMessage.playerPosY = transform.position.y;
+                //ingameMessage.faceDirection = dirX;
+                //ingameMessage.actionType = (short)GameMessage.ActionType.MOVE;
+                //socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
             }
 
             if (Input.GetButtonDown("Jump") && IsGrounded())
             {
                 Jump();
 
-                GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
-                ingameMessage.playerPosX = transform.position.x;
-                ingameMessage.playerPosY = transform.position.y;
-                ingameMessage.actionType = (short)GameMessage.ActionType.JUMP;
-                socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
+                //GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
+                //ingameMessage.playerPosX = transform.position.x;
+                //ingameMessage.playerPosY = transform.position.y;
+                //ingameMessage.actionType = (short)GameMessage.ActionType.JUMP;
+                //socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
             }
 
             if (Input.GetButtonDown("Crouch") && IsGrounded())

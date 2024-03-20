@@ -10,7 +10,6 @@ public class AITrainingHandler : MonoBehaviour
     public bool continuous = true;
 
     private gameData clientData;
-    private GameSocket gameSocket;
     private bool capturing = false;
 
     public Image testImage;
@@ -19,7 +18,6 @@ public class AITrainingHandler : MonoBehaviour
     void Start()
     {
         clientData = gameData.GetInstance();
-        gameSocket = GameSocket.GetInstance();
     }
 
     void Update()
@@ -66,7 +64,6 @@ public class AITrainingHandler : MonoBehaviour
         }
         byte[] ss = screenshot.EncodeToPNG();
 
-        gameSocket.SendScreenShot(clientData.clientID, width, height, ss);
         //Debug.Log("ss.Length: " + ss.Length);
 
         capturing = false;

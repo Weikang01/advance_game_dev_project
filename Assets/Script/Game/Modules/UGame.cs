@@ -2,6 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public class UserInfo
+{
+    public string uNick;
+    public int uSex;
+    public int uSystemAvatar;
+}
+
 public class UGame : Singleton<UGame>
 {
     public string uNick = null;
@@ -36,6 +43,16 @@ public class UGame : Singleton<UGame>
         this.uSex = usex;
     }
 
+    public void QuitMatch()
+    {
+        this.zoneid = -1;
+        this.matchid = -1;
+        this.self_teamid = -1;
+        this.self_seatid = -1;
+        this.other_users.Clear();
+        this.match_players_info.Clear();
+    }
+
     public void UserLogout()
     {
         uNick = null;
@@ -49,5 +66,43 @@ public class UGame : Singleton<UGame>
     public void SaveUGameInfo(GetUGameInfo ugameinfo)
     {
         this.uGameInfo = ugameinfo;
+    }
+
+    public UserInfo GetUserInfo(int seatid)
+    {
+        UserInfo uinfo = new UserInfo();
+        if (seatid == self_seatid)
+        {
+            uinfo.uNick = this.uNick;
+            uinfo.uSex = this.uSex;
+            uinfo.uSystemAvatar = this.uSystemAvatar;
+            return uinfo;
+        }
+        else
+        {
+            for (int i = 0; i < this.other_users.Count; i++)
+            {
+                if (this.other_users[i].Seatid == seatid)
+                {
+                    uinfo.uNick = this.other_users[i].Unick;
+                    uinfo.uSex = this.other_users[i].Usex;
+                    uinfo.uSystemAvatar = this.other_users[i].Usysavatar;
+                    return uinfo;
+                }
+            }
+        }
+        return null;
+    }
+
+    public CharacterInfo GetInMatchCharacterInfo(int seatid)
+    {
+        for (int i = 0; i < this.match_players_info.Count; i++)
+        {
+            if (this.match_players_info[i].Seatid == seatid)
+            {
+                return this.match_players_info[i];
+            }
+        }
+        return null;
     }
 }
