@@ -4,15 +4,47 @@ using UnityEngine;
 
 public class EnemyMovement : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private float speed = 2f;
+    private bool turned = false;
+
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private Rigidbody2D rb2;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private LayerMask groundLayer;
+
+    void Update()
     {
-        
+        if (ReachedEnd() && turned == false)
+        {
+            speed = speed * -1;
+            turned = true;
+            StartCoroutine(waitForMove());
+        }
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        
+        rb.velocity = new Vector2(speed, rb.velocity.y);
+        rb2.velocity = new Vector2(speed, rb2.velocity.y);
+
+    }
+
+    bool ReachedEnd()
+    {
+        if(Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer))
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    IEnumerator waitForMove()
+    {
+        yield return new WaitForSeconds(0.2f);
+        turned = false;
     }
 }

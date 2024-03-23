@@ -7,6 +7,8 @@ TagManager:
   - Ground
   - Deadly
   - SawPoint
+  - Kills
+  - Button
   layers:
   - Default
   - TransparentFX

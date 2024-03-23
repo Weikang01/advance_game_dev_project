@@ -16,7 +16,7 @@ public class SawMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (checkpointTouched() && turned == false)
+        if (!checkpointTouched() && turned == false)
         {
             speed = speed * -1;
             turned = true;

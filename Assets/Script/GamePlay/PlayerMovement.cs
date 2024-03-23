@@ -79,7 +79,7 @@ public class PlayerMovement : MonoBehaviour
                 Standing();
             }
 
-            if (Input.GetButtonDown("Crouch") && IsGrounded())
+            if (Input.GetButtonDown("Crouch"))
             {
                 Crouching();
             }
@@ -88,7 +88,6 @@ public class PlayerMovement : MonoBehaviour
                 potentialDistX = this.transform.position.x - ConnectedPlayer.transform.position.x;
                 potentialDistY = this.transform.position.y - ConnectedPlayer.transform.position.y;
                 potentialDistZ = Mathf.Sqrt((potentialDistX * potentialDistX) + (potentialDistY * potentialDistY));
-                print(potentialDistZ);
                 if(potentialDistZ > 3.0)
                 {
                     this.rb.velocity = new Vector2(-0.4f * potentialDistX, -0.4f * potentialDistY);
@@ -130,6 +129,7 @@ public class PlayerMovement : MonoBehaviour
         moveSpeed = 0f;
         jumpForce = 0f;
         crouchingPlayer = true;
+        this.rb.velocity = new Vector2(rb.velocity.x, -2f);
     }
 
     private void Standing()
