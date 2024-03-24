@@ -11,6 +11,7 @@ public class PlayerMovement : MonoBehaviour
     public SocketConnectionHandler socketConnectionHandler;
 
     [SerializeField] private LayerMask jumpableGround;
+    [SerializeField] private LayerMask secondaryJumpableGround;
     [SerializeField] GameObject ConnectedPlayer;
 
     internal float dirX = 0f;
@@ -22,18 +23,28 @@ public class PlayerMovement : MonoBehaviour
     internal float potentialDistY;
     internal float potentialDistZ;
     internal bool crouchingPlayer = false;
+    public bool singlePlayer = true;
+
+    private Animator animator;
+    public int playerSprite = 1;
+    public bool onGround = false;
+    private InteractLadders laddersClass;
+
+    [SerializeField] AnimatorOverrideController animatorOverride;
+
+    //Vector3 move;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<CapsuleCollider2D>();
-        sprite = GetComponent<SpriteRenderer>();
-        tempSpeed = moveSpeed;
-        tempJump = jumpForce;
-        potentialDistX = this.transform.position.x - ConnectedPlayer.transform.position.x;
-        potentialDistY = this.transform.position.y - ConnectedPlayer.transform.position.y;
-        potentialDistZ = Mathf.Sqrt((potentialDistX * potentialDistX) + (potentialDistY * potentialDistY));
+        sprite = gameObject.transform.GetChild(playerSprite + 1).GetComponent<SpriteRenderer>();
+
+        laddersClass = GetComponent<InteractLadders>();
+
+        animator = GetComponent<Animator>();
+        animator.runtimeAnimatorController = animatorOverride;
 
         GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
         ingameMessage.playerPosX = transform.position.x;
@@ -41,6 +52,10 @@ public class PlayerMovement : MonoBehaviour
         ingameMessage.actionType = (short)GameMessage.ActionType.ENTER;
         if (isCurrentPlayer)
             socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
+
+        //animatorOverride = new AnimatorOverrideController();
+        //animator.runtimeAnimatorController = animatorOverride;
+        //animator.runtimeAnimatorController.name = "Red_Girl";
     }
 
     // Update is called once per frame
@@ -49,6 +64,11 @@ public class PlayerMovement : MonoBehaviour
         if (isCurrentPlayer)
         {
             dirX = Input.GetAxisRaw("Horizontal");
+
+            animator.SetFloat("MoveSpeed", Mathf.Abs(dirX * moveSpeed));
+            animator.SetBool("Climbing", laddersClass.climbing);
+
+            //move = new Vector3(Input.GetAxis("Horizontal"), 0f, 0f);
 
             if (dirX != 0)
             {
@@ -63,9 +83,11 @@ public class PlayerMovement : MonoBehaviour
                 socketConnectionHandler.SendPlayerWorldMessage(ingameMessage);
             }
 
-            if (Input.GetButtonDown("Jump") && IsGrounded())
+            if (Input.GetButtonDown("Jump") && onGround)
             {
                 Jump();
+
+                animator.SetBool("Jumping", true);
 
                 GameMessage.clientMessage ingameMessage = new GameMessage.clientMessage();
                 ingameMessage.playerPosX = transform.position.x;
@@ -76,14 +98,14 @@ public class PlayerMovement : MonoBehaviour
 
             if(Input.GetButtonUp("Crouch") && moveSpeed == 0f)
             {
-                Standing();
+                //Standing();
             }
 
             if (Input.GetButtonDown("Crouch"))
             {
-                Crouching();
+                //Crouching();
             }
-            if (crouchingPlayer == false)
+            if (crouchingPlayer == false && singlePlayer == false)
             {
                 potentialDistX = this.transform.position.x - ConnectedPlayer.transform.position.x;
                 potentialDistY = this.transform.position.y - ConnectedPlayer.transform.position.y;
@@ -100,6 +122,8 @@ public class PlayerMovement : MonoBehaviour
     {
         dirX = face_direction;
         rb.velocity = new Vector2(face_direction * moveSpeed, rb.velocity.y);
+
+        //transform.position += moveSpeed * Time.fixedDeltaTime * move;
     }
 
     public void Jump()
@@ -121,21 +145,23 @@ public class PlayerMovement : MonoBehaviour
 
     private bool IsGrounded()
     {
-        return Physics2D.CapsuleCast(coll.bounds.center, coll.bounds.size, coll.direction, 0.0f, Vector2.down, .1f, jumpableGround);
+        return ((Physics2D.CapsuleCast(coll.bounds.center, coll.bounds.size, coll.direction, 0.0f, Vector2.down, .1f, jumpableGround)) || (Physics2D.CapsuleCast(coll.bounds.center, coll.bounds.size, coll.direction, 0.0f, Vector2.down, .1f, secondaryJumpableGround)));
     }
 
-    private void Crouching()
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        moveSpeed = 0f;
-        jumpForce = 0f;
-        crouchingPlayer = true;
-        this.rb.velocity = new Vector2(rb.velocity.x, -2f);
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            onGround = true;
+            animator.SetBool("Jumping", false);
+        }
     }
 
-    private void Standing()
+    private void OnCollisionExit2D(Collision2D collision)
     {
-        moveSpeed = tempSpeed;
-        jumpForce = tempJump;
-        crouchingPlayer = false;
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            onGround = false;
+        }
     }
 }

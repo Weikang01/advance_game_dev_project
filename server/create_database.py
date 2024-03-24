@@ -28,6 +28,26 @@ def create_database():
                         FOREIGN KEY (user_id) REFERENCES users (id)
                       )''')
 
+    # Create character_data table
+    cursor.execute('''CREATE TABLE IF NOT EXISTS character_data (
+                        id INTEGER PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        character_name TEXT NOT NULL,
+                        character_class TEXT NOT NULL,
+                        character_level INTEGER NOT NULL DEFAULT 1,
+                        character_experience INTEGER NOT NULL DEFAULT 0,
+                        FOREIGN KEY (user_id) REFERENCES users (id)
+                      )''')
+
+    # Create friend_list table
+    cursor.execute('''CREATE TABLE IF NOT EXISTS friend_list (
+                        id INTEGER PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        friend_id INTEGER NOT NULL,
+                        FOREIGN KEY (user_id) REFERENCES users (id),
+                        FOREIGN KEY (friend_id) REFERENCES users (id)
+                      )''')
+
     # Commit your changes in the database
     conn.commit()
 

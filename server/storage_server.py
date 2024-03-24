@@ -32,7 +32,7 @@ def register_user(username, password, email, phone=None):
     cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
     if cursor.fetchone():
         conn.close()
-        return {"status": "error", "message": "Username already exists"}
+        return {"status": "error", "user_exists": True}
 
     # Insert new user
     cursor.execute("INSERT INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)",
@@ -109,18 +109,26 @@ def load_player_profile(username):
 
 
 def load_character_data(username):
+    user_id = get_user_id(username)
+    if user_id is None:
+        return {"status": "error", "message": "User not found"}
+
     conn = db_connect()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM character_data WHERE username = ?", (username,))
+    cursor.execute("SELECT * FROM character_data WHERE user_id = ?", (user_id,))
     character_data = cursor.fetchone()
     conn.close()
     return character_data or {"status": "error", "message": "Character data not found"}
 
 
 def load_friend_list(username):
+    user_id = get_user_id(username)
+    if user_id is None:
+        return {"status": "error", "message": "User not found"}
+
     conn = db_connect()
     cursor = conn.cursor()
-    cursor.execute("SELECT friend_username FROM friend_list WHERE username = ?", (username,))
+    cursor.execute("SELECT friend_id FROM friend_list WHERE user_id = ?", (user_id,))
     friends = cursor.fetchall()
     conn.close()
     return {"friends": [friend[0] for friend in friends]}
@@ -129,9 +137,9 @@ def load_friend_list(username):
 async def handle_request(reader, writer):
     data = await reader.read(1024)
     message = data.decode()
-
     try:
         request = json.loads(message)
+        print(f"Received: {request} request.action: {request['action']}")
 
         if request['action'] == 'register':
             response = register_user(request['username'], request['password'], request['email'], request.get('phone'))

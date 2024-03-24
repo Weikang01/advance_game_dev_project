@@ -10,6 +10,8 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Rigidbody2D rb2;
     [SerializeField] private Transform groundCheck;
+    [SerializeField] private Transform wall1;
+    [SerializeField] private Transform wall2;
     [SerializeField] private LayerMask groundLayer;
 
     void Update()
@@ -32,7 +34,12 @@ public class EnemyMovement : MonoBehaviour
 
     bool ReachedEnd()
     {
-        if(Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer))
+        
+        if(Physics2D.OverlapCircle(wall1.position, 0.01f, groundLayer) || Physics2D.OverlapCircle(wall2.position, 0.2f, groundLayer))
+        {
+            return true;
+        }
+        else if (Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer))
         {
             return false;
         }
