@@ -11,6 +11,7 @@ public class PlayerMovement : MonoBehaviour
     public SocketConnectionHandler socketConnectionHandler;
 
     [SerializeField] private LayerMask jumpableGround;
+    [SerializeField] private LayerMask secondaryJumpableGround;
     [SerializeField] GameObject ConnectedPlayer;
 
     internal float dirX = 0f;
@@ -22,6 +23,7 @@ public class PlayerMovement : MonoBehaviour
     internal float potentialDistY;
     internal float potentialDistZ;
     internal bool crouchingPlayer = false;
+    public bool singlePlayer = true;
 
     private Animator animator;
     public int playerSprite = 1;
@@ -96,19 +98,18 @@ public class PlayerMovement : MonoBehaviour
 
             if(Input.GetButtonUp("Crouch") && moveSpeed == 0f)
             {
-                Standing();
+                //Standing();
             }
 
-            if (Input.GetButtonDown("Crouch") && IsGrounded())
+            if (Input.GetButtonDown("Crouch"))
             {
-                Crouching();
+                //Crouching();
             }
-            if (crouchingPlayer == false)
+            if (crouchingPlayer == false && singlePlayer == false)
             {
                 potentialDistX = this.transform.position.x - ConnectedPlayer.transform.position.x;
                 potentialDistY = this.transform.position.y - ConnectedPlayer.transform.position.y;
                 potentialDistZ = Mathf.Sqrt((potentialDistX * potentialDistX) + (potentialDistY * potentialDistY));
-                print(potentialDistZ);
                 if(potentialDistZ > 3.0)
                 {
                     this.rb.velocity = new Vector2(-0.4f * potentialDistX, -0.4f * potentialDistY);
@@ -144,7 +145,7 @@ public class PlayerMovement : MonoBehaviour
 
     private bool IsGrounded()
     {
-        return Physics2D.CapsuleCast(coll.bounds.center, coll.bounds.size, coll.direction, 0.0f, Vector2.down, .1f, jumpableGround);
+        return ((Physics2D.CapsuleCast(coll.bounds.center, coll.bounds.size, coll.direction, 0.0f, Vector2.down, .1f, jumpableGround)) || (Physics2D.CapsuleCast(coll.bounds.center, coll.bounds.size, coll.direction, 0.0f, Vector2.down, .1f, secondaryJumpableGround)));
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
